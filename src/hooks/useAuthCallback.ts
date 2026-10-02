@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { TokenStorage } from '../lib/tokenStorage';
+import { getApiClient } from '../lib/apiClient';
 import { authService } from '../services/authService';
 import { LumoraAuthTokens, LumoraUser } from '../types';
 
@@ -8,11 +9,15 @@ export interface UseAuthCallbackConfig {
 	onError?: (error: Error) => void;
 	redirectPath?: string;
 	apiBaseUrl?: string;
+	apiKey?: string;
 }
 
 /**
- * Hook for handling OAuth callback from Lumora API
+ * Hook for handling OAuth and magic link callbacks from Lumora API
  * Extracts tokens and user data from URL parameters and stores them in localStorage
+ * 
+ * Magic link sign-in:
+ * - If a 'magic_token' parameter is present, it is exchanged for tokens via the API
  * 
  * Supports both parameter formats:
  * - access_token / refresh_token (underscore format from API)
@@ -32,16 +37,29 @@ export interface UseAuthCallbackConfig {
 export const useAuthCallback = (config?: UseAuthCallbackConfig) => {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<Error | null>(null);
+	// Guard against double execution (React StrictMode) since magic tokens are single-use
+	const hasHandled = useRef(false);
 	
 	useEffect(() => {
+		if (hasHandled.current) {
+			return;
+		}
+		hasHandled.current = true;
+
 		const handleCallback = async () => {
 			try {
+				// Initialize the API client so profile / magic link calls work on this page
+				if (config?.apiBaseUrl) {
+					getApiClient(config.apiBaseUrl, config.apiKey);
+				}
+
 				// Parse URL parameters sent by Lumora API after OAuth completion
 				const params = new URLSearchParams(window.location.search);
 				
 				// Support both camelCase and underscore formats for compatibility
-				const accessToken = params.get('access_token') || params.get('accessToken');
-				const refreshToken = params.get('refresh_token') || params.get('refreshToken');
+				let accessToken = params.get('access_token') || params.get('accessToken');
+				let refreshToken = params.get('refresh_token') || params.get('refreshToken');
+				const magicToken = params.get('magic_token');
 				const userParam = params.get('user');
 				const errorParam = params.get('error');
 				const messageParam = params.get('message');
@@ -55,7 +73,14 @@ export const useAuthCallback = (config?: UseAuthCallbackConfig) => {
 					throw new Error(errorMessage);
 				}
 				
-				// Validate tokens are present in URL
+				// Exchange a magic link token for authentication tokens
+				if (magicToken) {
+					const tokens = await authService.verifyMagicLink(magicToken);
+					accessToken = tokens.accessToken;
+					refreshToken = tokens.refreshToken;
+				}
+				
+				// Validate tokens are present
 				if (!accessToken || !refreshToken) {
 					throw new Error('Missing authentication tokens in callback URL');
 				}

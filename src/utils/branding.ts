@@ -19,13 +19,13 @@ export const getDefaultBranding = (): BrandingConfig => ({
 	logoHeight: 48,
 	logo: 'https://via.placeholder.com/200x80/1976d2/ffffff?text=Lumora',
 
-	// Forget password messaging
-	forgetPasswordTitle: 'Reset Your Password',
-	forgetPasswordDescription:
-		'Enter your email address and we will send you a secure link to reset your password.',
-	forgetPasswordSuccessTitle: 'Check Your Inbox',
-	forgetPasswordSuccessDescription:
-		'We have sent you a password reset link. Please check your email and follow the instructions to reset your password.'
+	// Magic link messaging
+	magicLinkTitle: 'Sign In with Email',
+	magicLinkDescription:
+		'Enter your email address and we will send you a secure, one-time link to sign in. No password needed.',
+	magicLinkSuccessTitle: 'Check Your Inbox',
+	magicLinkSuccessDescription:
+		'We have sent you a sign-in link. Open it on this device to finish signing in. The link expires shortly and can only be used once.'
 });
 
 /**

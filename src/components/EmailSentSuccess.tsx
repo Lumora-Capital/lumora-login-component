@@ -2,18 +2,26 @@ import React from 'react';
 import { Box, Button, Typography } from '@mui/material';
 import { BrandingConfig } from '../types';
 
-interface ForgetPasswordSuccessProps {
+interface EmailSentSuccessProps {
 	brandConfig: BrandingConfig;
+	title: string;
+	description: string;
 	onBackToLogin: () => void;
 }
 
-const ForgetPasswordSuccess: React.FC<ForgetPasswordSuccessProps> = ({
+/**
+ * Confirmation screen shown after an email link has been sent
+ * (forget password, magic link sign-in)
+ */
+const EmailSentSuccess: React.FC<EmailSentSuccessProps> = ({
 	brandConfig,
+	title,
+	description,
 	onBackToLogin
 }) => {
 	return (
 		<>
-			{/* Logo and Branding Section for Forget Password Success */}
+			{/* Logo and Branding Section */}
 			<Box sx={{ textAlign: 'center', mb: 3 }}>
 				{brandConfig.logo && (
 					<Box sx={{ mb: 2 }}>
@@ -43,8 +51,7 @@ const ForgetPasswordSuccess: React.FC<ForgetPasswordSuccessProps> = ({
 						mb: 2
 					}}
 				>
-					{brandConfig.forgetPasswordSuccessTitle ||
-						'Check Your Email'}
+					{title}
 				</Typography>
 
 				<Typography
@@ -56,8 +63,7 @@ const ForgetPasswordSuccess: React.FC<ForgetPasswordSuccessProps> = ({
 						lineHeight: 1.6
 					}}
 				>
-					{brandConfig.forgetPasswordSuccessDescription ||
-						'We have sent you a password reset link. Please check your email and follow the instructions to reset your password.'}
+					{description}
 				</Typography>
 			</Box>
 
@@ -87,4 +93,4 @@ const ForgetPasswordSuccess: React.FC<ForgetPasswordSuccessProps> = ({
 	);
 };
 
-export default ForgetPasswordSuccess;
+export default EmailSentSuccess;

@@ -14,7 +14,13 @@ import {
 	Card,
 	CardContent
 } from '@mui/material';
-import { LumoraLogin, BrandingConfig, LumoraAuthConfig } from '../index';
+import {
+	LumoraLogin,
+	BrandingConfig,
+	LumoraAuthConfig,
+	TokenStorage,
+	usePasskeyRegistration
+} from '../index';
 import CallbackPage from './CallbackPage';
 
 // Create Material-UI theme for the demo
@@ -42,9 +48,10 @@ const App: React.FC = () => {
 	}
 
 	// State for all LumoraLogin props
-	const [enableLocalSignIn, setEnableLocalSignIn] = useState(true);
 	const [enableGoogleSignIn, setEnableGoogleSignIn] = useState(true);
-	const [enableForgetPassword, setEnableForgetPassword] = useState(true);
+	const [enableMicrosoftSignIn, setEnableMicrosoftSignIn] = useState(true);
+	const [enableMagicLinkSignIn, setEnableMagicLinkSignIn] = useState(true);
+	const [enablePasskeySignIn, setEnablePasskeySignIn] = useState(true);
 
 	// Auto-detect configuration from environment variables
 	const apiBaseUrl =
@@ -71,18 +78,24 @@ const App: React.FC = () => {
 		backgroundColor: '#ffffff',
 		textColor: '#333333',
 		logoHeight: 48,
-		logo: null,
-		forgetPasswordTitle: 'Reset Your Password',
-		forgetPasswordDescription:
-			'Enter your email address and we will send you a secure link to reset your password.',
-		forgetPasswordSuccessTitle: 'Check Your Inbox',
-		forgetPasswordSuccessDescription:
-			'We have sent you a password reset link. Please check your email and follow the instructions to reset your password.'
+		logo: null
 	});
 
 	// State for demo feedback
 	const [lastAction, setLastAction] = useState<string>('');
 	const [loginAttempts, setLoginAttempts] = useState(0);
+	const [isSignedIn, setIsSignedIn] = useState(TokenStorage.hasTokens());
+
+	// Passkey registration for the signed-in user
+	const passkey = usePasskeyRegistration(authConfig);
+
+	// Register a passkey on this device for the current user
+	const handleRegisterPasskey = async () => {
+		const result = await passkey.registerPasskey('Demo passkey');
+		if (result) {
+			setLastAction('✅ Passkey registered! You can now sign in with it.');
+		}
+	};
 
 	// Handle successful login
 	const handleLoginSuccess = (response: unknown) => {
@@ -96,6 +109,7 @@ const App: React.FC = () => {
 			}`
 		);
 		setLoginAttempts(prev => prev + 1);
+		setIsSignedIn(true);
 		console.log('Login successful:', response);
 	};
 
@@ -147,8 +161,9 @@ const App: React.FC = () => {
 							onLoginSuccess={handleLoginSuccess}
 							onLoginError={handleLoginError}
 							enableGoogleSignIn={enableGoogleSignIn}
-							enableLocalSignIn={enableLocalSignIn}
-							enableForgetPassword={enableForgetPassword}
+							enableMicrosoftSignIn={enableMicrosoftSignIn}
+							enableMagicLinkSignIn={enableMagicLinkSignIn}
+							enablePasskeySignIn={enablePasskeySignIn}
 							branding={branding}
 						/>
 					</Box>
@@ -206,6 +221,26 @@ const App: React.FC = () => {
 									Login Attempts: {loginAttempts}
 								</Typography>
 							</Box>
+
+							{/* Passkey registration requires a signed-in user */}
+							{isSignedIn && passkey.isSupported && (
+								<Box sx={{ mt: 2 }}>
+									{passkey.error && (
+										<Alert severity="error" sx={{ mb: 2 }}>
+											{passkey.error.message}
+										</Alert>
+									)}
+									<Button
+										variant="outlined"
+										onClick={handleRegisterPasskey}
+										disabled={passkey.loading}
+									>
+										{passkey.loading
+											? 'Waiting for passkey...'
+											: 'Register a passkey on this device'}
+									</Button>
+								</Box>
+							)}
 						</Paper>
 
 						{/* API Configuration - Auto-detected */}
@@ -273,20 +308,6 @@ const App: React.FC = () => {
 								<FormControlLabel
 									control={
 										<Switch
-											checked={enableLocalSignIn}
-											onChange={e =>
-												setEnableLocalSignIn(
-													e.target.checked
-												)
-											}
-										/>
-									}
-									label="Enable Email/Password Sign In"
-								/>
-
-								<FormControlLabel
-									control={
-										<Switch
 											checked={enableGoogleSignIn}
 											onChange={e =>
 												setEnableGoogleSignIn(
@@ -301,15 +322,43 @@ const App: React.FC = () => {
 								<FormControlLabel
 									control={
 										<Switch
-											checked={enableForgetPassword}
+											checked={enableMicrosoftSignIn}
 											onChange={e =>
-												setEnableForgetPassword(
+												setEnableMicrosoftSignIn(
 													e.target.checked
 												)
 											}
 										/>
 									}
-									label="Enable Forget Password"
+									label="Enable Microsoft Sign In"
+								/>
+
+								<FormControlLabel
+									control={
+										<Switch
+											checked={enableMagicLinkSignIn}
+											onChange={e =>
+												setEnableMagicLinkSignIn(
+													e.target.checked
+												)
+											}
+										/>
+									}
+									label="Enable Magic Link Sign In"
+								/>
+
+								<FormControlLabel
+									control={
+										<Switch
+											checked={enablePasskeySignIn}
+											onChange={e =>
+												setEnablePasskeySignIn(
+													e.target.checked
+												)
+											}
+										/>
+									}
+									label="Enable Passkey Sign In"
 								/>
 							</Box>
 						</Paper>
@@ -403,15 +452,7 @@ const App: React.FC = () => {
 											backgroundColor: '#ffffff',
 											textColor: '#333333',
 											logoHeight: 48,
-											logo: 'https://lumora.capital/_next/image?url=%2Fimages%2Flumora-logo.png&w=256&q=75',
-											forgetPasswordTitle:
-												'Reset Your Password',
-											forgetPasswordDescription:
-												'Enter your email address and we will send you a secure link to reset your password.',
-											forgetPasswordSuccessTitle:
-												'Check Your Inbox',
-											forgetPasswordSuccessDescription:
-												'We have sent you a password reset link. Please check your email and follow the instructions to reset your password.'
+											logo: 'https://lumora.capital/_next/image?url=%2Fimages%2Flumora-logo.png&w=256&q=75'
 										});
 									}}
 								>
@@ -457,7 +498,9 @@ const App: React.FC = () => {
     console.error('Login failed:', error);
   }}
   enableGoogleSignIn={true}
-  enableLocalSignIn={true}
+  enableMicrosoftSignIn={true}
+  enableMagicLinkSignIn={true}
+  enablePasskeySignIn={true}
 />`}
 								</Box>
 							</CardContent>

@@ -7,10 +7,10 @@ export interface BrandingConfig {
     textColor?: string;
     companyName?: string;
     tagline?: string;
-    forgetPasswordTitle?: string;
-    forgetPasswordDescription?: string;
-    forgetPasswordSuccessTitle?: string;
-    forgetPasswordSuccessDescription?: string;
+    magicLinkTitle?: string;
+    magicLinkDescription?: string;
+    magicLinkSuccessTitle?: string;
+    magicLinkSuccessDescription?: string;
 }
 export interface LumoraAuthConfig {
     apiBaseUrl: string;
@@ -43,21 +43,23 @@ export interface LumoraLoginProps {
     enableRecaptcha?: boolean;
     recaptchaSiteKey?: string;
     enableGoogleSignIn?: boolean;
-    enableLocalSignIn?: boolean;
-    enableForgetPassword?: boolean;
+    enableMicrosoftSignIn?: boolean;
+    enableMagicLinkSignIn?: boolean;
+    enablePasskeySignIn?: boolean;
     branding?: BrandingConfig;
 }
-export interface LoginFormData {
-    email: string;
-    password: string;
-}
-export interface ForgetPasswordFormData {
+export interface MagicLinkFormData {
     email: string;
 }
-export type LoginState = 'idle' | 'loading' | 'google-loading' | 'success' | 'error' | 'forget-password' | 'forget-password-loading' | 'forget-password-success';
+export interface PasskeyInfo {
+    id: string;
+    name?: string;
+    createdAt?: string;
+}
+export type LoginState = 'idle' | 'google-loading' | 'microsoft-loading' | 'passkey-loading' | 'success' | 'error' | 'magic-link' | 'magic-link-loading' | 'magic-link-success';
 export interface ErrorState {
     message: string;
-    type: 'local' | 'google' | 'network' | 'recaptcha' | 'forget-password';
+    type: 'google' | 'microsoft' | 'magic-link' | 'passkey' | 'network' | 'recaptcha';
 }
 declare global {
     interface Window {
