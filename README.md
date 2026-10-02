@@ -1,21 +1,18 @@
 # LumoraLogin Component v1.1.0
 
-A reusable React TypeScript login component with local and Google OAuth authentication, forget password functionality, API integration, and responsive design.
+A reusable, passwordless React TypeScript login component for the Lumora API: Google and Microsoft OAuth, magic links, and passkeys, with a responsive MUI design.
 
 ## Features
 
--   **Dual Mode Architecture**: Supports both API-integrated and callback-based authentication
--   **Lumora API Integration**: Direct integration with Lumora API for authentication
--   **Local Login**: Email/password authentication with validation
--   **Google OAuth**: Integration with Google Sign-In (both popup and redirect flows)
--   **Forget Password**: Built-in password reset functionality with email verification
+-   **Passwordless only**: No email/password form, so there are no passwords to leak, reuse or reset
+-   **Google & Microsoft OAuth**: Redirect flow through the Lumora API
+-   **Magic Link**: One-time sign-in link sent by email
+-   **Passkeys**: WebAuthn sign-in (Face ID, Touch ID, Windows Hello, security keys), plus a hook for registering passkeys
 -   **Token Management**: Automatic token refresh and localStorage-based session management
+-   **reCAPTCHA**: Optional reCAPTCHA Enterprise check before sending magic links
 -   **Responsive Design**: Mobile-first design using MUI breakpoints
--   **Form Validation**: Powered by react-hook-form and Yup
 -   **TypeScript Support**: Full TypeScript definitions included
--   **Customizable**: Configurable links, error handling, and styling
--   **Flexible Sign-in Methods**: Enable or disable local and Google sign-in independently
--   **Backward Compatibility**: Maintains full compatibility with existing callback-based implementations
+-   **Customizable Branding**: Logo, colors and copy
 
 ## Installation
 
@@ -115,488 +112,172 @@ You can also use the component via CDN:
 ## Usage
 
 ```tsx
-import React from 'react';
-import {
-	LumoraLogin,
-	GoogleOAuthResponse
-} from '@volenday/lumora-login-component';
-import { ThemeProvider, createTheme } from '@mui/material';
+import { LumoraLogin } from '@volenday/lumora-login-component';
 
-const theme = createTheme();
-
-const App = () => {
-	const handleLocalLogin = async (email: string, password: string) => {
-		// Your authentication logic here
-		const response = await fetch('/api/login', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ email, password })
-		});
-
-		if (!response.ok) {
-			throw new Error('Invalid credentials');
-		}
-
-		return response.json();
-	};
-
-	const handleGoogleLogin = async (response: GoogleOAuthResponse) => {
-		// Your Google OAuth logic here
-		console.log('Google OAuth response:', response);
-
-		try {
-			// Send the access token to your backend for verification
-			const backendResponse = await fetch('/api/auth/google', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ access_token: response.access_token })
-			});
-
-			if (!backendResponse.ok) {
-				throw new Error('Google authentication failed');
-			}
-
-			return await backendResponse.json();
-		} catch (error) {
-			throw new Error('Failed to verify Google token');
-		}
-	};
-
-	const handleLoginSuccess = (response: any) => {
-		// Handle successful login
-		console.log('User logged in:', response);
-		// Redirect or update app state
-	};
-
-	const handleLoginError = (error: Error) => {
-		// Handle login errors
-		console.error('Login failed:', error);
-	};
-
-	const handleForgetPassword = async (email: string) => {
-		// Your forget password logic here
-		const response = await fetch('/api/forget-password', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ email })
-		});
-
-		if (!response.ok) {
-			throw new Error('Failed to send reset email');
-		}
-
-		return response.json();
-	};
-
-	return (
-		<ThemeProvider theme={theme}>
-			<LumoraLogin
-				onLocalLogin={handleLocalLogin}
-				onGoogleLogin={handleGoogleLogin}
-				onLoginSuccess={handleLoginSuccess}
-				onLoginError={handleLoginError}
-				onForgetPassword={handleForgetPassword}
-				googleClientId="your-google-client-id"
-				enableLocalSignIn={true}
-				enableGoogleSignIn={true}
-				enableForgetPassword={true}
-			/>
-		</ThemeProvider>
-	);
-};
-
-export default App;
-```
-
-## API Integration Mode (New in v1.1.0)
-
-The component now supports direct integration with the Lumora API, eliminating the need for callback-based authentication. This mode provides automatic token management, session persistence, and seamless Google OAuth redirect flow.
-
-### Basic API Integration Setup
-
-```tsx
-import React from 'react';
-import {
-	LumoraLogin,
-	useAuthCallback,
-	useLogout
-} from '@volenday/lumora-login-component';
-import { ThemeProvider, createTheme } from '@mui/material';
-
-const theme = createTheme();
-
-// In your login page component
-const LoginPage = () => {
-	return (
-		<ThemeProvider theme={theme}>
-			<LumoraLogin
-				authConfig={{
-					apiBaseUrl: 'https://dev.api.lumora.capital',
-					apiKey: 'your-api-key',
-					useApiIntegration: true
-				}}
-				onLoginSuccess={response => {
-					console.log('User logged in:', response);
-					// Redirect to dashboard
-					window.location.href = '/dashboard';
-				}}
-				onLoginError={error => {
-					console.error('Login failed:', error);
-				}}
-				enableGoogleSignIn={true}
-				enableLocalSignIn={true}
-			/>
-		</ThemeProvider>
-	);
-};
-
-// In your OAuth callback page (e.g., /auth/callback)
-const AuthCallbackPage = () => {
-	useAuthCallback({
-		onSuccess: (tokens, user) => {
-			console.log('OAuth successful:', user);
+const LoginPage = () => (
+	<LumoraLogin
+		authConfig={{
+			apiBaseUrl: 'https://dev.api.lumora.capital',
+			apiKey: 'your-api-key'
+		}}
+		onLoginSuccess={({ user, tokens }) => {
+			console.log('Signed in:', user);
 			window.location.href = '/dashboard';
-		},
-		onError: error => {
-			console.error('OAuth failed:', error);
-			window.location.href = '/login';
-		}
-	});
+		}}
+		onLoginError={error => console.error('Sign-in failed:', error)}
+		enableGoogleSignIn={true}
+		enableMicrosoftSignIn={true}
+		enableMagicLinkSignIn={true}
+		enablePasskeySignIn={true}
+	/>
+);
+```
 
-	return <div>Processing authentication...</div>;
-};
+Tokens are stored in localStorage automatically, and the user profile is fetched from `GET /users/me`.
 
-// In your dashboard or header component
-const Header = () => {
-	const { logout } = useLogout({
+### Callback Page
+
+Google, Microsoft and magic link sign-in all return to `{window.location.origin}/callback`. Render a page there that uses `useAuthCallback`:
+
+```tsx
+import { useAuthCallback } from '@volenday/lumora-login-component';
+
+const CallbackPage = () => {
+	const { loading, error } = useAuthCallback({
 		apiBaseUrl: 'https://dev.api.lumora.capital',
-		useApiIntegration: true
+		apiKey: 'your-api-key',
+		redirectPath: '/dashboard',
+		onSuccess: (tokens, user) => console.log('Signed in:', user),
+		onError: error => console.error(error)
 	});
 
-	return <button onClick={logout}>Logout</button>;
+	if (loading) return <p>Signing you in...</p>;
+	if (error) return <p>{error.message}</p>;
+	return null;
 };
 ```
 
-### Google OAuth Redirect Flow
+The hook reads `access_token` / `refresh_token` (OAuth) or exchanges a `magic_token` (magic link) for tokens, stores them, and removes them from the address bar.
 
-The API integration mode uses a redirect-based OAuth flow instead of popups:
+## Sign-in Methods
 
-1. **Configure redirect URI** in your Lumora API dashboard
-2. **Create a callback route** in your app (e.g., `/auth/callback`)
-3. **Use the `useAuthCallback` hook** on that route to handle token extraction
-4. **Tokens are automatically stored** in localStorage and user profile is fetched
+Google is enabled by default; the other methods are opt-in. At least one method must be enabled, or the component throws an error.
 
-### Environment Configuration
+-   **Google / Microsoft**: the browser is redirected to `GET {apiBaseUrl}/auth/google` or `/auth/microsoft` with `redirect_uri={origin}/callback&prompt=select_account`. The API redirects back to `/callback` with tokens.
+-   **Magic link**: the user enters their email and the component calls `POST /auth/magic-link` with `{ email, redirectUri }`. The emailed link points to `{redirectUri}?magic_token=...`, and `useAuthCallback` exchanges it via `POST /auth/magic-link/verify`.
+-   **Passkey**: calls `POST /auth/passkey/login/options`, shows the browser passkey prompt, then `POST /auth/passkey/login/verify`. No email is needed (discoverable credentials). The button only appears when the browser supports WebAuthn.
 
-Create a `.env` file with your API configuration:
+### Registering Passkeys
 
-```bash
-# .env
-VITE_LUMORA_API_BASE_URL=https://dev.api.lumora.capital
-VITE_LUMORA_API_KEY=your-api-key-here
-VITE_GOOGLE_REDIRECT_URI=http://localhost:3000/auth/callback
-
-# Alternative environment variable names (also supported)
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CALLBACK_URL=http://localhost:3000/auth/google/callback
-FRONTEND_URL=http://localhost:3001
-API_KEY=your_api_key_here
-```
-
-**Environment Variable Priority:**
-
-1. Props passed to component (highest priority)
-2. `VITE_*` prefixed environment variables
-3. Non-prefixed environment variables (lowest priority)
-
-**Automatic Configuration:**
-The component automatically detects and uses environment variables when available, so you can use it without passing any props:
+Users need to register a passkey while signed in, for example from an account security page:
 
 ```tsx
-// This will work if environment variables are set
-<LumoraLogin
-  onLoginSuccess={handleLoginSuccess}
-  onLoginError={handleLoginError}
-  enableGoogleSignIn={true}
-  enableLocalSignIn={true}
-/>
+import { usePasskeyRegistration } from '@volenday/lumora-login-component';
 
-// For API mode, just set useApiIntegration to true
-<LumoraLogin
-  authConfig={{
-    useApiIntegration: true
-    // API_KEY, GOOGLE_CALLBACK_URL, and FRONTEND_URL will be read from .env
-  }}
-  onLoginSuccess={handleLoginSuccess}
-  onLoginError={handleLoginError}
-  enableGoogleSignIn={true}
-  enableLocalSignIn={true}
-/>
-```
+const AccountSecurity = () => {
+	const { registerPasskey, loading, error, isSupported } = usePasskeyRegistration({
+		apiBaseUrl: 'https://dev.api.lumora.capital'
+	});
 
-### API Integration vs Legacy Mode
+	if (!isSupported) return null;
 
-| Feature                 | API Integration Mode   | Legacy Callback Mode |
-| ----------------------- | ---------------------- | -------------------- |
-| **Authentication**      | Direct API calls       | Callback functions   |
-| **Token Management**    | Automatic with refresh | Manual handling      |
-| **Google OAuth**        | Redirect flow          | Popup flow           |
-| **Session Persistence** | Automatic              | Manual               |
-| **Configuration**       | `authConfig` prop      | Callback props       |
-| **Dependencies**        | Requires axios         | No additional deps   |
-
-## Sign-in Method Configuration
-
-The component supports flexible configuration of sign-in methods through the `enableLocalSignIn` and `enableGoogleSignIn` props:
-
-### Both Methods Enabled (Default)
-
-```tsx
-<LumoraLogin
-	enableLocalSignIn={true}
-	enableGoogleSignIn={true}
-	// ... other props
-/>
-```
-
-### Local Sign-in Only
-
-```tsx
-<LumoraLogin
-	enableLocalSignIn={true}
-	enableGoogleSignIn={false}
-	// ... other props
-/>
-```
-
-### Google Sign-in Only
-
-```tsx
-<LumoraLogin
-	enableLocalSignIn={false}
-	enableGoogleSignIn={true}
-	googleClientId="your-google-client-id"
-	// ... other props
-/>
-```
-
-**Note**: At least one sign-in method must be enabled. The component will throw an error if both are disabled.
-
-## Forget Password Functionality
-
-The component includes built-in forget password functionality that allows users to request a password reset via email.
-
-### Basic Forget Password Setup
-
-```tsx
-<LumoraLogin
-	onForgetPassword={handleForgetPassword}
-	enableForgetPassword={true}
-	// ... other props
-/>
-```
-
-### Forget Password Configuration
-
--   **`onForgetPassword`**: Callback function that handles the password reset request
--   **`enableForgetPassword`**: Enable/disable the forget password functionality (default: `true`)
--   The forget password link only appears when both `enableForgetPassword` is `true` and `onForgetPassword` is provided
--   Users can navigate between login and forget password screens seamlessly
-
-### Forget Password Flow
-
-1. **User clicks "Forgot Password?" link** on the login form
-2. **Forget password form appears** with email input field
-3. **User enters email and submits** the form
-4. **Loading state shows** while processing the request
-5. **Success screen displays** confirmation that reset email was sent
-6. **User can return to login** using the "Back to Sign In" button
-
-### Example Implementation
-
-```tsx
-const handleForgetPassword = async (email: string) => {
-	try {
-		const response = await fetch('/api/forget-password', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ email })
-		});
-
-		if (!response.ok) {
-			const error = await response.json();
-			throw new Error(error.message || 'Failed to send reset email');
-		}
-
-		return await response.json();
-	} catch (error) {
-		throw new Error('Network error. Please try again.');
-	}
+	return (
+		<>
+			{error && <Alert severity="error">{error.message}</Alert>}
+			<Button onClick={() => registerPasskey('My laptop')} disabled={loading}>
+				Add a passkey
+			</Button>
+		</>
+	);
 };
 ```
 
-### Disabling Forget Password
+### Logout
 
 ```tsx
-<LumoraLogin
-	enableForgetPassword={false}
-	// ... other props
-/>
+import { useLogout } from '@volenday/lumora-login-component';
+
+const { logout } = useLogout({ apiBaseUrl: 'https://dev.api.lumora.capital' });
 ```
 
 ## reCAPTCHA Integration
 
-The component supports Google reCAPTCHA v3 integration for enhanced security:
-
-### Basic reCAPTCHA Setup
+When enabled, a reCAPTCHA Enterprise token is requested before a magic link is sent.
 
 ```tsx
 <LumoraLogin
 	enableRecaptcha={true}
 	recaptchaSiteKey="your-recaptcha-site-key"
-	onLocalLogin={handleLocalLogin}
-	onGoogleLogin={handleGoogleLogin}
-	onLoginSuccess={handleLoginSuccess}
-	onLoginError={handleLoginError}
 	// ... other props
 />
 ```
 
-### reCAPTCHA Configuration
-
--   **`enableRecaptcha`**: Set to `true` to enable reCAPTCHA verification
--   **`recaptchaSiteKey`**: Your reCAPTCHA site key from Google reCAPTCHA Admin Console
--   When `enableRecaptcha` is `true`, `recaptchaSiteKey` is required
--   reCAPTCHA verification happens automatically before form submission
--   The component loads the reCAPTCHA script only when enabled
-
-### Getting a reCAPTCHA Site Key
-
-1. Go to [Google reCAPTCHA Admin Console](https://www.google.com/recaptcha/admin)
-2. Create a new site or select an existing one
-3. Choose reCAPTCHA v3
-4. Add your domain(s)
-5. Copy the Site Key and use it in the `recaptchaSiteKey` prop
+`recaptchaSiteKey` is required when `enableRecaptcha` is `true`. Get a key from the [Google reCAPTCHA Admin Console](https://www.google.com/recaptcha/admin).
 
 ## Props
 
-| Prop                           | Type                                                | Required | Default | Description                                                                                        |
-| ------------------------------ | --------------------------------------------------- | -------- | ------- | -------------------------------------------------------------------------------------------------- |
-| **API Integration Props**      |                                                     |          |         |                                                                                                    |
-| `authConfig`                   | `LumoraAuthConfig`                                  | ❌       | -       | Configuration object for API-integrated mode                                                       |
-| `authConfig.apiBaseUrl`        | `string`                                            | ❌       | -       | Base URL for Lumora API (e.g., https://dev.api.lumora.capital)                                     |
-| `authConfig.apiKey`            | `string`                                            | ❌       | -       | API key for authentication                                                                         |
-| `authConfig.useApiIntegration` | `boolean`                                           | ❌       | `false` | Enable API integration mode (true) or use legacy callbacks (false)                                 |
-| **Legacy Callback Props**      |                                                     |          |         |                                                                                                    |
-| `onLocalLogin`                 | `(email: string, password: string) => Promise<any>` | ❌       | -       | Callback for local email/password login (legacy mode)                                              |
-| `onGoogleLogin`                | `(response: GoogleOAuthResponse) => void`           | ❌       | -       | Callback for Google OAuth login with response object (legacy mode)                                 |
-| **Common Props**               |                                                     |          |         |                                                                                                    |
-| `onLoginSuccess`               | `(response: any) => void`                           | ✅       | -       | Callback for successful login                                                                      |
-| `onLoginError`                 | `(error: Error) => void`                            | ✅       | -       | Callback for login errors                                                                          |
-| `onForgetPassword`             | `(email: string) => Promise<any>`                   | ❌       | -       | Callback for forget password functionality                                                         |
-| **Configuration Props**        |                                                     |          |         |                                                                                                    |
-| `enableRecaptcha`              | `boolean`                                           | ❌       | `false` | Enable/disable reCAPTCHA verification                                                              |
-| `recaptchaSiteKey`             | `string`                                            | ❌       | -       | reCAPTCHA site key (required when enableRecaptcha is true)                                         |
-| `googleClientId`               | `string`                                            | ❌       | -       | Google OAuth client ID (required for legacy mode)                                                  |
-| `enableLocalSignIn`            | `boolean`                                           | ❌       | `true`  | Enable/disable local email/password sign-in                                                        |
-| `enableGoogleSignIn`           | `boolean`                                           | ❌       | `true`  | Enable/disable Google OAuth sign-in                                                                |
-| `enableForgetPassword`         | `boolean`                                           | ❌       | `true`  | Enable/disable forget password functionality                                                       |
-| `branding`                     | `BrandingConfig`                                    | ❌       | -       | Custom branding configuration for the component                                                    |
+| Prop                    | Type                                                                  | Required | Default | Description                                         |
+| ----------------------- | --------------------------------------------------------------------- | -------- | ------- | --------------------------------------------------- |
+| `authConfig`            | `LumoraAuthConfig`                                                    | ✅       | -       | API configuration                                   |
+| `authConfig.apiBaseUrl` | `string`                                                              | ✅       | -       | Base URL for Lumora API                             |
+| `authConfig.apiKey`     | `string`                                                              | ❌       | -       | API key sent as `X-API-Key`                         |
+| `onLoginSuccess`        | `(response: { user: LumoraUser; tokens: LumoraAuthTokens }) => void` | ✅       | -       | Called after a successful passkey sign-in           |
+| `onLoginError`          | `(error: Error) => void`                                              | ✅       | -       | Called when any sign-in attempt fails               |
+| `enableGoogleSignIn`    | `boolean`                                                             | ❌       | `true`  | Show "Continue with Google"                         |
+| `enableMicrosoftSignIn` | `boolean`                                                             | ❌       | `false` | Show "Continue with Microsoft"                      |
+| `enableMagicLinkSignIn` | `boolean`                                                             | ❌       | `false` | Show "Email me a sign-in link"                      |
+| `enablePasskeySignIn`   | `boolean`                                                             | ❌       | `false` | Show "Sign in with a passkey"                       |
+| `enableRecaptcha`       | `boolean`                                                             | ❌       | `false` | Verify reCAPTCHA before sending magic links         |
+| `recaptchaSiteKey`      | `string`                                                              | ❌       | -       | reCAPTCHA site key (required with reCAPTCHA)        |
+| `branding`              | `BrandingConfig`                                                      | ❌       | -       | Logo, colors and copy                               |
+
+OAuth and magic link sign-ins finish on the callback page, so handle their success in `useAuthCallback`.
 
 ## TypeScript Interfaces
 
-### LumoraAuthConfig
-
-Configuration object for API integration mode:
-
 ```typescript
 interface LumoraAuthConfig {
-	apiBaseUrl?: string; // Base URL for Lumora API
-	apiKey?: string; // API key for authentication
-	useApiIntegration?: boolean; // Enable API integration mode
-	// Note: Google Redirect URI is auto-generated as window.location.origin + '/callback'
+	apiBaseUrl: string;
+	apiKey?: string;
 }
-```
 
-### LumoraAuthTokens
-
-Authentication tokens returned by the Lumora API:
-
-```typescript
 interface LumoraAuthTokens {
-	accessToken: string; // Access token for API requests
-	refreshToken: string; // Refresh token for token renewal
+	accessToken: string;
+	refreshToken: string;
 }
-```
 
-### LumoraUser
-
-User profile object returned by the API:
-
-```typescript
 interface LumoraUser {
-	id: string; // User ID
-	email: string; // User email address
-	name?: string; // User display name (optional)
+	id: string;
+	email: string;
+	name?: string;
+	profilePicture?: string;
+	role?: string;
 }
-```
 
-### GoogleOAuthResponse
-
-The Google OAuth response object (legacy mode only):
-
-```typescript
-interface GoogleOAuthResponse {
-	access_token: string; // Google access token
-	expires_in: number; // Token expiration time in seconds
-	scope: string; // OAuth scope
-	token_type: string; // Token type (usually "Bearer")
+interface PasskeyInfo {
+	id: string;
+	name?: string;
+	createdAt?: string;
 }
-```
 
-### ErrorState
-
-Error states are categorized by type for better error handling:
-
-```typescript
 interface ErrorState {
 	message: string;
-	type:
-		| 'local'
-		| 'google'
-		| 'network'
-		| 'recaptcha'
-		| 'forget-password';
+	type: 'google' | 'microsoft' | 'magic-link' | 'passkey' | 'network' | 'recaptcha';
 }
-```
 
-#### Error Types
-
--   **`local`**: Errors related to email/password authentication
--   **`google`**: Errors related to Google OAuth authentication
--   **`network`**: Network connectivity or server errors
--   **`recaptcha`**: reCAPTCHA verification errors
--   **`forget-password`**: Errors related to password reset functionality
-
-### LoginState
-
-The component manages different states during the authentication flow:
-
-```typescript
 type LoginState =
-	| 'idle' // Default form state
-	| 'loading' // Local authentication in progress
-	| 'google-loading' // Google OAuth in progress
+	| 'idle' // Sign-in options displayed
+	| 'google-loading' // Redirecting to Google
+	| 'microsoft-loading' // Redirecting to Microsoft
+	| 'passkey-loading' // Passkey prompt in progress
 	| 'success' // Authentication successful
 	| 'error' // Authentication failed
-	| 'forget-password' // Forget password form displayed
-	| 'forget-password-loading' // Forget password request in progress
-	| 'forget-password-success'; // Forget password email sent successfully
+	| 'magic-link' // Magic link form displayed
+	| 'magic-link-loading' // Magic link request in progress
+	| 'magic-link-success'; // Magic link email sent
 ```
 
 ## Branding Configuration
-
-The `branding` prop allows you to customize the visual appearance of the component:
 
 ```tsx
 interface BrandingConfig {
@@ -608,477 +289,53 @@ interface BrandingConfig {
 	textColor?: string; // Text color throughout the component
 	companyName?: string; // Company name displayed in header
 	tagline?: string; // Optional tagline below company name
+	magicLinkTitle?: string; // Magic link form title
+	magicLinkDescription?: string; // Magic link form description
+	magicLinkSuccessTitle?: string; // "Check your inbox" title
+	magicLinkSuccessDescription?: string; // "Check your inbox" description
 }
 ```
 
-### Example with Custom Branding
-
 ```tsx
 <LumoraLogin
-	onLocalLogin={handleLocalLogin}
-	onGoogleLogin={handleGoogleLogin}
-	onLoginSuccess={handleLoginSuccess}
-	onLoginError={handleLoginError}
+	// ... other props
 	branding={{
 		companyName: 'My Company',
 		tagline: 'Welcome to our platform',
 		logo: 'https://example.com/logo.png',
 		logoHeight: 60,
 		primaryColor: '#ff6b35',
-		secondaryColor: '#f7931e',
-		backgroundColor: '#f8f9fa',
-		textColor: '#2c3e50'
+		secondaryColor: '#f7931e'
 	}}
 />
 ```
-
-### Using React Components as Logo
-
-```tsx
-const CustomLogo = () => (
-	<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-		<Box
-			sx={{
-				width: 40,
-				height: 40,
-				bgcolor: 'primary.main',
-				borderRadius: 1
-			}}
-		/>
-		<Typography variant="h6" color="primary">
-			MyApp
-		</Typography>
-	</Box>
-);
-
-<LumoraLogin
-	// ... other props
-	branding={{
-		companyName: 'My Company',
-		logo: <CustomLogo />,
-		logoHeight: 48,
-		primaryColor: '#1976d2'
-	}}
-/>;
-```
-
-### Dynamic Branding Based on Theme
-
-```tsx
-const App = () => {
-	const [isDarkMode, setIsDarkMode] = useState(false);
-
-	const branding: BrandingConfig = {
-		companyName: 'My Company',
-		primaryColor: isDarkMode ? '#90caf9' : '#1976d2',
-		secondaryColor: isDarkMode ? '#bbdefb' : '#42a5f5',
-		backgroundColor: isDarkMode ? '#121212' : '#ffffff',
-		textColor: isDarkMode ? '#ffffff' : '#333333'
-	};
-
-	return (
-		<LumoraLogin
-			// ... other props
-			branding={branding}
-		/>
-	);
-};
-```
-
-## Component States
-
-The component handles the following states internally:
-
--   **Idle**: Default form state with input fields
--   **Loading**: Shows loading spinner during local authentication
--   **Google-loading**: Shows loading spinner during Google OAuth
--   **Error**: Shows error message with retry option
--   **Success**: Triggers onLoginSuccess callback
-
-### State Flow
-
-```
-Idle → Loading/Google-loading → Success
-  ↓           ↓
-Error ←───────┘
-```
-
-## Advanced Usage Examples
-
-### Custom Error Handling
-
-```tsx
-const handleLoginError = (error: Error) => {
-	// Handle different types of errors
-	if (error.message.includes('network')) {
-		// Show network error message
-		showNotification('Please check your internet connection', 'error');
-	} else if (error.message.includes('credentials')) {
-		// Show credentials error
-		showNotification('Invalid email or password', 'error');
-	} else {
-		// Generic error handling
-		showNotification('Login failed. Please try again.', 'error');
-	}
-
-	// Log error for debugging
-	console.error('Login error:', error);
-};
-```
-
-### Conditional Rendering Based on User State
-
-```tsx
-const App = () => {
-	const [user, setUser] = useState(null);
-	const [showLogin, setShowLogin] = useState(true);
-
-	const handleLoginSuccess = (response: any) => {
-		setUser(response.user);
-		setShowLogin(false);
-	};
-
-	if (!showLogin && user) {
-		return <Dashboard user={user} onLogout={() => setShowLogin(true)} />;
-	}
-
-	return (
-		<LumoraLogin
-			onLocalLogin={handleLocalLogin}
-			onGoogleLogin={handleGoogleLogin}
-			onLoginSuccess={handleLoginSuccess}
-			onLoginError={handleLoginError}
-			// ... other props
-		/>
-	);
-};
-```
-
-### Integration with State Management
-
-```tsx
-import { useDispatch } from 'react-redux';
-import { loginSuccess, loginError } from './store/authSlice';
-
-const App = () => {
-	const dispatch = useDispatch();
-
-	const handleLoginSuccess = (response: any) => {
-		dispatch(loginSuccess(response));
-		// Redirect to dashboard
-		window.location.href = '/dashboard';
-	};
-
-	const handleLoginError = (error: Error) => {
-		dispatch(loginError(error.message));
-	};
-
-	// ... rest of component
-};
-```
-
-## Styling
-
-The component uses Material-UI (MUI) for styling and is fully responsive. You can customize the appearance by:
-
-1. Wrapping with a custom MUI theme
-2. Using CSS-in-JS overrides
-3. Modifying the component's internal styles
-
-## Dependencies
-
-### Peer Dependencies
-
--   React ^18.2.0
--   React DOM ^18.2.0
--   @emotion/react >=11.0.0
--   @emotion/styled >=11.0.0
--   @mui/material >=5.0.0
--   react-hook-form >=7.0.0
-
-### Required Dependencies
-
--   @hookform/resolvers ^5.2.2
--   @mui/icons-material ^7.3.4
--   @react-oauth/google ^0.12.2
--   yup ^1.7.1
 
 ## Interactive Demo
 
-The component includes a comprehensive interactive demo that allows you to test all features and configurations in real-time. The demo provides:
-
--   **Live Configuration**: Toggle sign-in methods, configure Google OAuth, and adjust branding settings
--   **Real-time Preview**: See changes instantly as you modify the configuration
--   **Error Simulation**: Test error handling and recovery flows
--   **Responsive Testing**: View the component on different screen sizes
--   **Branding Customization**: Adjust colors, logos, and text in real-time
-
-### Running the Demo
-
-1. **Clone the repository:**
-
-    ```bash
-    git clone https://github.com/Volenday/lumora-login-component.git
-    cd lumora-login-component
-    ```
-
-2. **Install dependencies:**
-
-    ```bash
-    npm install
-    ```
-
-3. **Start the development server:**
-
-    ```bash
-    npm run dev
-    ```
-
-4. **Open your browser:**
-   Navigate to `http://localhost:5173` to see the interactive demo
-
-### Demo Features
-
-The demo includes configuration controls for:
-
--   **Mode Toggle**: Switch between Legacy Callback Mode and API Integration Mode
--   **API Configuration**: Configure API settings when in API mode
--   **Sign-in Methods**: Enable/disable local and Google sign-in
--   **Google OAuth**: Configure client ID and test OAuth flow (Legacy mode) or redirect flow (API mode)
--   **Branding**: Customize company name, logo, colors, and styling
--   **reCAPTCHA**: Test reCAPTCHA integration (uses test key)
--   **Error Handling**: Simulate various error scenarios
--   **Responsive Design**: Test mobile and desktop layouts
--   **Real-time Testing**: Test both authentication modes with visual feedback
-
-### OAuth Callback Demo
-
-For testing the Google OAuth redirect flow in API mode, you can use the included callback page:
-
 ```bash
-# Open in browser
-open demo-callback.html
+npm install
+npm run dev
 ```
 
-This demonstrates how the `useAuthCallback` hook would work in a real application.
+Open `http://localhost:3001`. The demo lets you toggle each sign-in method, adjust branding, and register a passkey after signing in. It reads `VITE_API_URL` and `VITE_API_KEY` from `.env`.
 
 ## Development
 
-### Environment Setup
-
-1. **Create environment file:**
-
-    ```bash
-    # Copy the example environment file
-    cp .env.example .env
-    ```
-
-2. **Configure reCAPTCHA (optional):**
-
-    ```bash
-    # Edit .env file and add your reCAPTCHA site key
-    VITE_RECAPTCHA_SITE_KEY=your-recaptcha-site-key-here
-    ```
-
-3. **Install dependencies:**
-
-    ```bash
-    npm install
-    ```
-
-4. **Start development server:**
-
-    ```bash
-    npm run dev
-    ```
-
-5. **Build for production:**
-
-    ```bash
-    npm run build
-    ```
-
-6. **Type checking:**
-    ```bash
-    npm run type-check
-    ```
-
-### Environment Variables
-
-The demo application supports the following environment variables:
-
--   `VITE_RECAPTCHA_SITE_KEY`: Your Google reCAPTCHA site key for the demo app
-    -   Get your key from [Google reCAPTCHA Admin Console](https://www.google.com/recaptcha/admin)
-    -   If not provided, the demo will use a test key for development purposes
-
-## Troubleshooting
-
-### Common Issues
-
-#### 1. Google OAuth Not Working
-
-**Problem**: Google sign-in button doesn't appear or doesn't work.
-
-**Solutions**:
-
--   Ensure `googleClientId` is provided and valid
--   Check that your Google OAuth client is configured correctly
--   Verify the domain is added to your Google OAuth client settings
--   Make sure `enableGoogleSignIn` is set to `true`
-
-#### 2. reCAPTCHA Errors
-
-**Problem**: reCAPTCHA verification fails.
-
-**Solutions**:
-
--   Verify your reCAPTCHA site key is correct
--   Check that the domain is registered in Google reCAPTCHA console
--   Ensure `enableRecaptcha` is `true` when using reCAPTCHA
--   Test with a valid reCAPTCHA site key
-
-#### 3. Styling Issues
-
-**Problem**: Component doesn't match your design system.
-
-**Solutions**:
-
--   Use the `branding` prop to customize colors and styling
--   Wrap with a custom MUI theme
--   Override styles using CSS-in-JS or CSS modules
-
-#### 4. TypeScript Errors
-
-**Problem**: TypeScript compilation errors.
-
-**Solutions**:
-
--   Ensure all peer dependencies are installed
--   Check that you're using the correct TypeScript version (^5.0.0)
--   Import types from the component: `import { GoogleOAuthResponse, BrandingConfig } from '@volenday/lumora-login-component'`
-
-### Getting Help
-
-If you encounter issues not covered here:
-
-1. Check the [GitHub Issues](https://github.com/Volenday/lumora-login-component/issues)
-2. Review the [interactive demo](#interactive-demo) for working examples
-3. Create a new issue with:
-    - Component version
-    - React version
-    - Error messages
-    - Steps to reproduce
-
-## Migration Guide
-
-### Migrating from v1.0.x to v1.1.0
-
-The v1.1.0 release introduces API integration mode while maintaining full backward compatibility with existing implementations. You can migrate gradually or continue using the legacy callback approach.
-
-#### Option 1: Keep Using Legacy Mode (No Changes Required)
-
-Your existing code will continue to work without any changes:
-
-```tsx
-// This still works exactly as before
-<LumoraLogin
-	onLocalLogin={handleLocalLogin}
-	onGoogleLogin={handleGoogleLogin}
-	onLoginSuccess={handleLoginSuccess}
-	onLoginError={handleLoginError}
-	googleClientId="your-google-client-id"
-	enableLocalSignIn={true}
-	enableGoogleSignIn={true}
-/>
-```
-
-#### Option 2: Migrate to API Integration Mode
-
-To use the new API integration features:
-
-1. **Install the latest version:**
-
-    ```bash
-    npm install git+https://github.com/Volenday/lumora-login-component.git
-    ```
-
-2. **Add axios dependency:**
-
-    ```bash
-    npm install axios
-    ```
-
-3. **Update your component:**
-
-    ```tsx
-    // Before (Legacy Mode)
-    <LumoraLogin
-      onLocalLogin={handleLocalLogin}
-      onGoogleLogin={handleGoogleLogin}
-      onLoginSuccess={handleLoginSuccess}
-      onLoginError={handleLoginError}
-      googleClientId="your-google-client-id"
-    />
-
-    // After (API Integration Mode)
-    <LumoraLogin
-      authConfig={{
-        apiBaseUrl: 'https://dev.api.lumora.capital',
-        apiKey: 'your-api-key',
-        useApiIntegration: true
-      }}
-      onLoginSuccess={handleLoginSuccess}
-      onLoginError={handleLoginError}
-    />
-    ```
-
-4. **Create OAuth callback page:**
-
-    ```tsx
-    // pages/auth/callback.tsx
-    import { useAuthCallback } from '@volenday/lumora-login-component';
-
-    const AuthCallbackPage = () => {
-    	useAuthCallback({
-    		onSuccess: (tokens, user) => {
-    			// Handle successful OAuth
-    			window.location.href = '/dashboard';
-    		},
-    		onError: error => {
-    			// Handle OAuth error
-    			window.location.href = '/login';
-    		}
-    	});
-
-    	return <div>Processing authentication...</div>;
-    };
-    ```
-
-5. **Update logout functionality:**
-
-    ```tsx
-    // components/Header.tsx
-    import { useLogout } from '@volenday/lumora-login-component';
-
-    const Header = () => {
-    	const { logout } = useLogout({
-    		apiBaseUrl: 'https://dev.api.lumora.capital',
-    		useApiIntegration: true
-    	});
-
-    	return <button onClick={logout}>Logout</button>;
-    };
-    ```
-
-#### Benefits of API Integration Mode
-
--   **Automatic token management**: No need to handle token storage/refresh manually
--   **Session persistence**: Users stay logged in across page refreshes
--   **Simplified Google OAuth**: No need for Google Client ID or popup handling
--   **Better error handling**: Automatic retry logic and token refresh
--   **Reduced boilerplate**: Less code required for authentication
+-   `npm run dev`: start the demo
+-   `npm run build`: build the library into `dist/`
+-   `npm run type-check`: TypeScript check
+-   `npm test`: run the Jest suite
 
 ## Changelog
+
+### Unreleased
+
+-   **BREAKING**: Removed email/password sign-in (`enableLocalSignIn`, `LoginFormData`, `POST /auth/login`)
+-   **BREAKING**: Removed forget password (`enableForgetPassword` and the `forgetPassword*` branding fields)
+-   **NEW**: Microsoft OAuth sign-in (`enableMicrosoftSignIn`)
+-   **NEW**: Magic link sign-in (`enableMagicLinkSignIn`), exchanged in `useAuthCallback`
+-   **NEW**: Passkey sign-in (`enablePasskeySignIn`) and `usePasskeyRegistration` hook
+-   **FIXED**: `useAuthCallback` now initializes the API client from `apiBaseUrl`
 
 ### v1.1.0
 

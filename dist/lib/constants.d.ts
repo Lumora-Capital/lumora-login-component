@@ -4,11 +4,17 @@
  */
 export declare const API_CONSTANTS: {
     readonly ENDPOINTS: {
-        readonly LOGIN: "/auth/login";
         readonly LOGOUT: "/auth/logout";
         readonly REFRESH: "/auth/refresh";
         readonly GOOGLE_AUTH: "/auth/google";
         readonly GOOGLE_CALLBACK: "/auth/google/callback";
+        readonly MICROSOFT_AUTH: "/auth/microsoft";
+        readonly MAGIC_LINK_REQUEST: "/auth/magic-link";
+        readonly MAGIC_LINK_VERIFY: "/auth/magic-link/verify";
+        readonly PASSKEY_LOGIN_OPTIONS: "/auth/passkey/login/options";
+        readonly PASSKEY_LOGIN_VERIFY: "/auth/passkey/login/verify";
+        readonly PASSKEY_REGISTER_OPTIONS: "/auth/passkey/register/options";
+        readonly PASSKEY_REGISTER_VERIFY: "/auth/passkey/register/verify";
         readonly USER_ME: "/users/me";
     };
     readonly STORAGE_KEYS: {

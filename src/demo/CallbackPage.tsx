@@ -18,7 +18,9 @@ const CallbackPage: React.FC = () => {
 			console.error('❌ OAuth Error:', error);
 		},
 		redirectPath: '/',
-		apiBaseUrl: 'https://dev.api.lumora.capital'
+		apiBaseUrl:
+			import.meta.env.VITE_API_URL || 'https://dev.api.lumora.capital',
+		apiKey: import.meta.env.VITE_API_KEY
 	});
 
 	// Loading state

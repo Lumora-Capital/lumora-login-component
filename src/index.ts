@@ -7,6 +7,7 @@ export { getDefaultBranding, getBrandingConfig } from './utils/branding';
 // Export hooks
 export { useAuthCallback } from './hooks/useAuthCallback';
 export { useLogout } from './hooks/useLogout';
+export { usePasskeyRegistration } from './hooks/usePasskeyRegistration';
 
 // Export utilities
 export { TokenStorage } from './lib/tokenStorage';
@@ -14,12 +15,12 @@ export { TokenStorage } from './lib/tokenStorage';
 // Export all TypeScript types
 export type {
 	LumoraLoginProps,
-	LoginFormData,
 	LoginState,
 	ErrorState,
 	BrandingConfig,
 	GoogleOAuthResponse,
 	LumoraAuthConfig,
 	LumoraAuthTokens,
-	LumoraUser
+	LumoraUser,
+	PasskeyInfo
 } from './types';

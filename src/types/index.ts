@@ -7,10 +7,10 @@ export interface BrandingConfig {
 	textColor?: string;
 	companyName?: string;
 	tagline?: string;
-	forgetPasswordTitle?: string;
-	forgetPasswordDescription?: string;
-	forgetPasswordSuccessTitle?: string;
-	forgetPasswordSuccessDescription?: string;
+	magicLinkTitle?: string;
+	magicLinkDescription?: string;
+	magicLinkSuccessTitle?: string;
+	magicLinkSuccessDescription?: string;
 }
 
 export interface LumoraAuthConfig {
@@ -51,40 +51,44 @@ export interface LumoraLoginProps {
 	enableRecaptcha?: boolean;
 	recaptchaSiteKey?: string;
 	enableGoogleSignIn?: boolean;
-	enableLocalSignIn?: boolean;
-	enableForgetPassword?: boolean;
+	enableMicrosoftSignIn?: boolean;
+	enableMagicLinkSignIn?: boolean;
+	enablePasskeySignIn?: boolean;
 	
 	// Styling
 	branding?: BrandingConfig;
 }
 
-export interface LoginFormData {
+export interface MagicLinkFormData {
 	email: string;
-	password: string;
 }
 
-export interface ForgetPasswordFormData {
-	email: string;
+export interface PasskeyInfo {
+	id: string;
+	name?: string;
+	createdAt?: string;
 }
 
 export type LoginState =
 	| 'idle'
-	| 'loading'
 	| 'google-loading'
+	| 'microsoft-loading'
+	| 'passkey-loading'
 	| 'success'
 	| 'error'
-	| 'forget-password'
-	| 'forget-password-loading'
-	| 'forget-password-success';
+	| 'magic-link'
+	| 'magic-link-loading'
+	| 'magic-link-success';
 
 export interface ErrorState {
 	message: string;
 	type:
-		| 'local'
 		| 'google'
+		| 'microsoft'
+		| 'magic-link'
+		| 'passkey'
 		| 'network'
-		| 'recaptcha'
-		| 'forget-password';
+		| 'recaptcha';
 }
 
 // Global reCAPTCHA types

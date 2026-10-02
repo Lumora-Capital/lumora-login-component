@@ -6,11 +6,17 @@
 export const API_CONSTANTS = {
 	// Default API endpoints
 	ENDPOINTS: {
-		LOGIN: '/auth/login',
 		LOGOUT: '/auth/logout',
 		REFRESH: '/auth/refresh',
 		GOOGLE_AUTH: '/auth/google',
 		GOOGLE_CALLBACK: '/auth/google/callback',
+		MICROSOFT_AUTH: '/auth/microsoft',
+		MAGIC_LINK_REQUEST: '/auth/magic-link',
+		MAGIC_LINK_VERIFY: '/auth/magic-link/verify',
+		PASSKEY_LOGIN_OPTIONS: '/auth/passkey/login/options',
+		PASSKEY_LOGIN_VERIFY: '/auth/passkey/login/verify',
+		PASSKEY_REGISTER_OPTIONS: '/auth/passkey/register/options',
+		PASSKEY_REGISTER_VERIFY: '/auth/passkey/register/verify',
 		USER_ME: '/users/me'
 	},
 

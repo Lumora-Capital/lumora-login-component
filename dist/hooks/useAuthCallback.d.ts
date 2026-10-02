@@ -4,10 +4,14 @@ export interface UseAuthCallbackConfig {
     onError?: (error: Error) => void;
     redirectPath?: string;
     apiBaseUrl?: string;
+    apiKey?: string;
 }
 /**
- * Hook for handling OAuth callback from Lumora API
+ * Hook for handling OAuth and magic link callbacks from Lumora API
  * Extracts tokens and user data from URL parameters and stores them in localStorage
+ *
+ * Magic link sign-in:
+ * - If a 'magic_token' parameter is present, it is exchanged for tokens via the API
  *
  * Supports both parameter formats:
  * - access_token / refresh_token (underscore format from API)

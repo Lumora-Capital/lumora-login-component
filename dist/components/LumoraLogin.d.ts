@@ -2,7 +2,8 @@ import { default as React } from 'react';
 import { LumoraLoginProps } from '../types';
 /**
  * Lumora Login Component
- * Provides authentication UI with email/password and Google OAuth via Lumora API
+ * Provides passwordless authentication UI with Google / Microsoft OAuth,
+ * magic link, and passkey sign-in via Lumora API
  */
 declare const LumoraLogin: React.FC<LumoraLoginProps>;
 export default LumoraLogin;

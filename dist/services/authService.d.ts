@@ -1,16 +1,9 @@
-import { LumoraAuthTokens, LumoraUser } from '../types';
+import { LumoraAuthTokens, LumoraUser, PasskeyInfo } from '../types';
 /**
  * Authentication service for interacting with the Lumora API
- * Provides methods for login, logout, token refresh, and user management
+ * Provides methods for passwordless sign-in, logout, token refresh, and user management
  */
 export declare const authService: {
-    /**
-     * Authenticate user with email and password
-     * @param email - User's email address
-     * @param password - User's password
-     * @returns Promise resolving to authentication tokens
-     */
-    login: (email: string, password: string) => Promise<LumoraAuthTokens>;
     /**
      * Logout user and invalidate refresh token
      * @param refreshToken - The refresh token to invalidate
@@ -29,10 +22,35 @@ export declare const authService: {
      */
     getCurrentUser: () => Promise<LumoraUser>;
     /**
-     * Initiate Google OAuth flow by redirecting to Lumora API
+     * Initiate an OAuth flow (Google, Microsoft) by redirecting to Lumora API
+     * @param endpoint - The provider's OAuth start endpoint on the Lumora API
      * @param redirectUri - The URI to redirect to after OAuth completion
      * @param apiBaseUrl - The base URL of the Lumora API
      */
-    initiateGoogleOAuth: (redirectUri: string, apiBaseUrl: string) => void;
+    initiateOAuth: (endpoint: string, redirectUri: string, apiBaseUrl: string) => void;
+    /**
+     * Request a one-time sign-in link to be emailed to the user
+     * @param email - User's email address
+     * @param redirectUri - Frontend URI the emailed link should point to
+     * @returns Promise resolving when the request has been accepted
+     */
+    requestMagicLink: (email: string, redirectUri: string) => Promise<void>;
+    /**
+     * Exchange a magic link token for authentication tokens
+     * @param token - The one-time token from the emailed link
+     * @returns Promise resolving to authentication tokens
+     */
+    verifyMagicLink: (token: string) => Promise<LumoraAuthTokens>;
+    /**
+     * Sign in with a passkey (discoverable credential, no email required)
+     * @returns Promise resolving to authentication tokens
+     */
+    loginWithPasskey: () => Promise<LumoraAuthTokens>;
+    /**
+     * Register a new passkey for the currently signed-in user
+     * @param name - Optional friendly name for the passkey (e.g. "MacBook Pro")
+     * @returns Promise resolving to the stored passkey info
+     */
+    registerPasskey: (name?: string) => Promise<PasskeyInfo>;
 };
 //# sourceMappingURL=authService.d.ts.map

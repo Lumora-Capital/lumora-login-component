@@ -11,12 +11,12 @@ import {
 	Alert,
 	Typography
 } from '@mui/material';
-import {
-	BrandingConfig,
-	ForgetPasswordFormData,
-	LoginState,
-	ErrorState
-} from '../types';
+import { BrandingConfig, ErrorState } from '../types';
+
+// Shape of the data submitted by the email request form
+interface EmailRequestFormData {
+	email: string;
+}
 
 const validationSchema = yup.object({
 	email: yup
@@ -25,18 +25,28 @@ const validationSchema = yup.object({
 		.required('Email is required')
 });
 
-interface ForgetPasswordFormProps {
+interface EmailRequestFormProps {
 	brandConfig: BrandingConfig;
-	loginState: LoginState;
+	title: string;
+	description: string;
+	submitLabel: string;
+	isSubmitting: boolean;
 	error: ErrorState | null;
-	onSubmit: SubmitHandler<ForgetPasswordFormData>;
+	onSubmit: SubmitHandler<EmailRequestFormData>;
 	onBackToLogin: () => void;
 	onCloseError: () => void;
 }
 
-const ForgetPasswordForm: React.FC<ForgetPasswordFormProps> = ({
+/**
+ * Single email field form used for flows that email the user a link
+ * (forget password, magic link sign-in)
+ */
+const EmailRequestForm: React.FC<EmailRequestFormProps> = ({
 	brandConfig,
-	loginState,
+	title,
+	description,
+	submitLabel,
+	isSubmitting,
 	error,
 	onSubmit,
 	onBackToLogin,
@@ -46,11 +56,11 @@ const ForgetPasswordForm: React.FC<ForgetPasswordFormProps> = ({
 		register,
 		handleSubmit,
 		formState: { errors }
-	} = useForm<ForgetPasswordFormData>({
+	} = useForm<EmailRequestFormData>({
 		resolver: yupResolver(validationSchema)
 	});
 
-	const isDisabled = loginState === 'forget-password-loading';
+	const isDisabled = isSubmitting;
 
 	return (
 		<>
@@ -72,7 +82,7 @@ const ForgetPasswordForm: React.FC<ForgetPasswordFormProps> = ({
 						mb: 2
 					}}
 				>
-					{brandConfig.forgetPasswordTitle || 'Reset Password'}
+					{title}
 				</Typography>
 
 				<Typography
@@ -84,8 +94,7 @@ const ForgetPasswordForm: React.FC<ForgetPasswordFormProps> = ({
 						lineHeight: 1.6
 					}}
 				>
-					{brandConfig.forgetPasswordDescription ||
-						'Enter your email address and we will send you a link to reset your password.'}
+					{description}
 				</Typography>
 			</Box>
 
@@ -142,7 +151,7 @@ const ForgetPasswordForm: React.FC<ForgetPasswordFormProps> = ({
 						{isDisabled ? (
 							<CircularProgress size={24} color="inherit" />
 						) : (
-							'Send Reset Link'
+							submitLabel
 						)}
 					</Button>
 
@@ -168,4 +177,4 @@ const ForgetPasswordForm: React.FC<ForgetPasswordFormProps> = ({
 	);
 };
 
-export default ForgetPasswordForm;
+export default EmailRequestForm;
