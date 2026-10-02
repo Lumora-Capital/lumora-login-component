@@ -10,6 +10,7 @@ import { browserSupportsWebAuthn } from '@simplewebauthn/browser';
 import {
 	LumoraLoginProps,
 	LumoraAuthTokens,
+	LumoraUser,
 	MagicLinkFormData,
 	LoginState,
 	ErrorState
@@ -121,12 +122,12 @@ const LumoraLogin: React.FC<LumoraLoginProps> = ({
 	};
 
 	// Store tokens, fetch the user profile and notify the host app
-	const completeSignIn = async (tokens: LumoraAuthTokens) => {
+	const completeSignIn = async (tokens: LumoraAuthTokens, signedInUser?: LumoraUser) => {
 		// Store tokens in localStorage
 		TokenStorage.setTokens(tokens.accessToken, tokens.refreshToken);
 
-		// Fetch user profile from API
-		const user = await authService.getCurrentUser();
+		// The sign-in response names the user; fetch the profile only when it did not
+		const user = signedInUser ?? (await authService.getCurrentUser());
 
 		// Set success state and call success callback
 		setLoginState('success');
@@ -168,8 +169,8 @@ const LumoraLogin: React.FC<LumoraLoginProps> = ({
 		setError(null);
 
 		try {
-			const tokens = await authService.loginWithPasskey();
-			await completeSignIn(tokens);
+			const { tokens, user } = await authService.loginWithPasskey();
+			await completeSignIn(tokens, user);
 		} catch (err) {
 			const error = err as Error;
 			setError({ message: error.message, type: 'passkey' });

@@ -17,7 +17,8 @@ export const API_CONSTANTS = {
 		PASSKEY_LOGIN_VERIFY: '/auth/passkey/login/verify',
 		PASSKEY_REGISTER_OPTIONS: '/auth/passkey/register/options',
 		PASSKEY_REGISTER_VERIFY: '/auth/passkey/register/verify',
-		USER_ME: '/users/me'
+		// The Lumora API has no /users/me: /users/:id would read "me" as an id and answer 404
+		USER_ME: '/auth/me'
 	},
 
 	// Token storage keys

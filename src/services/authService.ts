@@ -76,11 +76,15 @@ export const authService = {
 		try {
 			const client = getApiClient();
 			const response = await client.get(API_CONSTANTS.ENDPOINTS.USER_ME);
+			// GET /auth/me answers { success, data: { ...user } }
+			const profile = response.data?.data ?? response.data;
 
 			return {
-				id: response.data.id,
-				email: response.data.email,
-				name: response.data.name
+				id: profile.id,
+				email: profile.email,
+				name: profile.name,
+				profilePicture: profile.profilePicture,
+				role: profile.role
 			};
 		} catch (error: any) {
 			throw new Error(
@@ -154,7 +158,7 @@ export const authService = {
 	 * Sign in with a passkey (discoverable credential, no email required)
 	 * @returns Promise resolving to authentication tokens
 	 */
-	loginWithPasskey: async (): Promise<LumoraAuthTokens> => {
+	loginWithPasskey: async (): Promise<{ tokens: LumoraAuthTokens; user?: LumoraUser }> => {
 		try {
 			const client = getApiClient();
 
@@ -165,15 +169,20 @@ export const authService = {
 			// Prompt the user to pick a passkey via the browser / OS
 			const assertion = await startAuthentication({ optionsJSON: options });
 
-			// Send the signed assertion back to the API for verification
-			const verifyResponse = await client.post(API_CONSTANTS.ENDPOINTS.PASSKEY_LOGIN_VERIFY, {
-				challengeId,
-				response: assertion
-			});
+			// Send the signed assertion back to the API for verification. With credentials, so the
+			// browser keeps the shared-session cookie the API sets here (sign-in to sibling Lumora apps).
+			const verifyResponse = await client.post(
+				API_CONSTANTS.ENDPOINTS.PASSKEY_LOGIN_VERIFY,
+				{ challengeId, response: assertion },
+				{ withCredentials: true }
+			);
 
 			return {
-				accessToken: verifyResponse.data.accessToken,
-				refreshToken: verifyResponse.data.refreshToken
+				tokens: {
+					accessToken: verifyResponse.data.accessToken,
+					refreshToken: verifyResponse.data.refreshToken
+				},
+				user: verifyResponse.data.user
 			};
 		} catch (error: any) {
 			throw new Error(getPasskeyErrorMessage(error, 'Passkey sign-in failed'));

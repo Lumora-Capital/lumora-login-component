@@ -15,7 +15,7 @@ export declare const API_CONSTANTS: {
         readonly PASSKEY_LOGIN_VERIFY: "/auth/passkey/login/verify";
         readonly PASSKEY_REGISTER_OPTIONS: "/auth/passkey/register/options";
         readonly PASSKEY_REGISTER_VERIFY: "/auth/passkey/register/verify";
-        readonly USER_ME: "/users/me";
+        readonly USER_ME: "/auth/me";
     };
     readonly STORAGE_KEYS: {
         readonly ACCESS_TOKEN: "lumora_access_token";
