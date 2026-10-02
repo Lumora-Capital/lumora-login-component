@@ -45,7 +45,10 @@ export declare const authService: {
      * Sign in with a passkey (discoverable credential, no email required)
      * @returns Promise resolving to authentication tokens
      */
-    loginWithPasskey: () => Promise<LumoraAuthTokens>;
+    loginWithPasskey: () => Promise<{
+        tokens: LumoraAuthTokens;
+        user?: LumoraUser;
+    }>;
     /**
      * Register a new passkey for the currently signed-in user
      * @param name - Optional friendly name for the passkey (e.g. "MacBook Pro")

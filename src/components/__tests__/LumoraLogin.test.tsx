@@ -243,11 +243,33 @@ describe('LumoraLogin Component', () => {
 	});
 
 	describe('Passkey Sign-In', () => {
-		it('should sign in with a passkey', async () => {
+		it('should sign in with a passkey using the user the API returned', async () => {
 			const user = userEvent.setup();
 			const tokens = { accessToken: 'access', refreshToken: 'refresh' };
 			const mockUser = { id: '1', email: 'test@example.com' };
-			jest.spyOn(authService, 'loginWithPasskey').mockResolvedValue(tokens);
+			jest.spyOn(authService, 'loginWithPasskey').mockResolvedValue({ tokens, user: mockUser });
+			const getCurrentUser = jest.spyOn(authService, 'getCurrentUser');
+			const props = createMockProps({ enablePasskeySignIn: true });
+			renderWithTheme(props);
+
+			await user.click(
+				screen.getByRole('button', { name: 'Sign in with a passkey' })
+			);
+
+			await waitFor(() => {
+				expect(props.onLoginSuccess).toHaveBeenCalledWith({
+					user: mockUser,
+					tokens
+				});
+			});
+			expect(getCurrentUser).not.toHaveBeenCalled();
+		});
+
+		it('should fetch the profile when the passkey response names no user', async () => {
+			const user = userEvent.setup();
+			const tokens = { accessToken: 'access', refreshToken: 'refresh' };
+			const mockUser = { id: '1', email: 'test@example.com' };
+			jest.spyOn(authService, 'loginWithPasskey').mockResolvedValue({ tokens });
 			jest.spyOn(authService, 'getCurrentUser').mockResolvedValue(mockUser);
 			const props = createMockProps({ enablePasskeySignIn: true });
 			renderWithTheme(props);

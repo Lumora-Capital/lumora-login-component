@@ -133,7 +133,7 @@ const LoginPage = () => (
 );
 ```
 
-Tokens are stored in localStorage automatically, and the user profile is fetched from `GET /users/me`.
+Tokens are stored in localStorage automatically, and the user profile comes from the sign-in response (fetched from `GET /auth/me` when it is missing).
 
 ### Callback Page
 

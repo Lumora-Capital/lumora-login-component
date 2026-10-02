@@ -399,7 +399,8 @@ const us = () => ({
     PASSKEY_LOGIN_VERIFY: "/auth/passkey/login/verify",
     PASSKEY_REGISTER_OPTIONS: "/auth/passkey/register/options",
     PASSKEY_REGISTER_VERIFY: "/auth/passkey/register/verify",
-    USER_ME: "/users/me"
+    // The Lumora API has no /users/me: /users/:id would read "me" as an id and answer 404
+    USER_ME: "/auth/me"
   },
   // Token storage keys
   STORAGE_KEYS: {
@@ -1253,7 +1254,7 @@ function Vt(e, t, r) {
     if (f === 1 / 0)
       return JSON.stringify(R);
     const w = [];
-    return JSON.stringify(R, function(k, j) {
+    return JSON.stringify(R, function(N, j) {
       if (!d.isObject(j))
         return j;
       for (; w.length && w[w.length - 1] !== this; )
@@ -1288,8 +1289,8 @@ function Vt(e, t, r) {
     if (!d.isUndefined(R)) {
       if (b(w), p.indexOf(R) !== -1)
         throw new Error("Circular reference detected in " + x.join("."));
-      p.push(R), d.forEach(R, function(k, j) {
-        (!(d.isUndefined(k) || k === null) && s.call(t, k, d.isString(j) ? j.trim() : j, x, S)) === !0 && g(k, x ? x.concat(j) : [j], w + 1);
+      p.push(R), d.forEach(R, function(N, j) {
+        (!(d.isUndefined(N) || N === null) && s.call(t, N, d.isString(j) ? j.trim() : j, x, S)) === !0 && g(N, x ? x.concat(j) : [j], w + 1);
       }), p.pop();
     }
   }
@@ -1981,21 +1982,21 @@ const ta = typeof XMLHttpRequest < "u", ra = ta && function(e) {
     }, g.onabort = function() {
       g && (n(new _("Request aborted", _.ECONNABORTED, e, g)), S(), g = null);
     }, g.onerror = function(T) {
-      const k = T && T.message ? T.message : "Network Error", j = new _(k, _.ERR_NETWORK, e, g);
+      const N = T && T.message ? T.message : "Network Error", j = new _(N, _.ERR_NETWORK, e, g);
       j.event = T || null, n(j), S(), g = null;
     }, g.ontimeout = function() {
       let T = o.timeout ? "timeout of " + o.timeout + "ms exceeded" : "timeout exceeded";
-      const k = o.transitional || $r;
+      const N = o.transitional || $r;
       o.timeoutErrorMessage && (T = o.timeoutErrorMessage), n(
         new _(
           T,
-          k.clarifyTimeoutError ? _.ETIMEDOUT : _.ECONNABORTED,
+          N.clarifyTimeoutError ? _.ETIMEDOUT : _.ECONNABORTED,
           e,
           g
         )
       ), S(), g = null;
-    }, s === void 0 && i.setContentType(null), "setRequestHeader" in g && d.forEach(io(i), function(T, k) {
-      g.setRequestHeader(k, T);
+    }, s === void 0 && i.setContentType(null), "setRequestHeader" in g && d.forEach(io(i), function(T, N) {
+      g.setRequestHeader(N, T);
     }), d.isUndefined(o.withCredentials) || (g.withCredentials = !!o.withCredentials), a && a !== "json" && (g.responseType = o.responseType), f && ([m, y, h] = Mt(
       f,
       !0
@@ -2265,23 +2266,23 @@ const Lr = "1.20.0", an = 64 * 1024, ha = {
       method: x,
       data: w,
       signal: T,
-      cancelToken: k,
+      cancelToken: N,
       timeout: j,
       onDownloadProgress: re,
       onUploadProgress: Z,
       responseType: ee,
       headers: q,
       withCredentials: c = "same-origin",
-      fetchOptions: N,
-      maxContentLength: C,
+      fetchOptions: P,
+      maxContentLength: O,
       maxBodyLength: H,
       maxRedirects: z
     } = wo(g);
-    const ae = d.isNumber(C) && C > -1, me = d.isNumber(H) && H > -1, ot = (P) => d.hasOwnProp(g, P) ? g[P] : void 0;
-    let O = o || fetch;
+    const ae = d.isNumber(O) && O > -1, me = d.isNumber(H) && H > -1, ot = (k) => d.hasOwnProp(g, k) ? g[k] : void 0;
+    let C = o || fetch;
     ee = ee ? (ee + "").toLowerCase() : "text";
     let v = na(
-      [T, k && k.toAbortSignal()],
+      [T, N && N.toAbortSignal()],
       j
     ), I = null;
     const L = v && v.unsubscribe && (() => {
@@ -2295,32 +2296,32 @@ const Lr = "1.20.0", an = 64 * 1024, ha = {
       I
     );
     try {
-      let P;
+      let k;
       const D = ot("auth");
       if (D) {
         const U = d.getSafeProp(D, "username") || "", de = d.getSafeProp(D, "password") || "";
-        P = {
+        k = {
           username: U,
           password: de
         };
       }
       if (ga(R)) {
         const U = new URL(R, le.origin);
-        if (!P && (U.username || U.password)) {
+        if (!k && (U.username || U.password)) {
           const de = cn(U.username), $e = cn(U.password);
-          P = {
+          k = {
             username: de,
             password: $e
           };
         }
         (U.username || U.password) && (U.username = "", U.password = "", R = U.href);
       }
-      if (P && (q.delete("authorization"), q.set(
+      if (k && (q.delete("authorization"), q.set(
         "Authorization",
-        "Basic " + btoa(ma((P.username || "") + ":" + (P.password || "")))
-      )), ae && typeof R == "string" && R.startsWith("data:") && pa(R) > C)
+        "Basic " + btoa(ma((k.username || "") + ":" + (k.password || "")))
+      )), ae && typeof R == "string" && R.startsWith("data:") && pa(R) > O)
         throw new _(
-          "maxContentLength size of " + C + " exceeded",
+          "maxContentLength size of " + O + " exceeded",
           _.ERR_BAD_RESPONSE,
           g,
           I
@@ -2371,7 +2372,7 @@ const Lr = "1.20.0", an = 64 * 1024, ha = {
         U && /^multipart\/form-data/i.test(U) && !/boundary=/i.test(U) && q.delete("content-type");
       }
       q.set("User-Agent", "axios/" + Lr, !1);
-      const A = N == null ? N : Object.assign(/* @__PURE__ */ Object.create(null), N);
+      const A = P == null ? P : Object.assign(/* @__PURE__ */ Object.create(null), P);
       A && (delete A.body, delete A.headers, delete A.method, delete A.signal, delete A.duplex, delete A.credentials);
       const ce = Object.assign(/* @__PURE__ */ Object.create(null), A, {
         signal: v,
@@ -2384,13 +2385,13 @@ const Lr = "1.20.0", an = 64 * 1024, ha = {
       l && (d.forEach(ha, (U, de) => {
         ce[de] === void 0 && (ce[de] = U);
       }), ce.signal === void 0 && (ce.signal = null), ce.body === void 0 && (ce.body = null)), z === 0 && (ce.redirect = "manual", A && (A.redirect = "manual")), I = l && new s(R, ce);
-      let ge = await (l ? O(I, A) : O(R, ce));
+      let ge = await (l ? C(I, A) : C(R, ce));
       const st = he.from(ge.headers);
       if (ae) {
         const U = d.toFiniteNumber(st.getContentLength());
-        if (U != null && U > C)
+        if (U != null && U > O)
           throw new _(
-            "maxContentLength size of " + C + " exceeded",
+            "maxContentLength size of " + O + " exceeded",
             _.ERR_BAD_RESPONSE,
             g,
             I
@@ -2408,9 +2409,9 @@ const Lr = "1.20.0", an = 64 * 1024, ha = {
         ) || [];
         let Wr = 0;
         const Wo = (it) => {
-          if (ae && (Wr = it, Wr > C))
+          if (ae && (Wr = it, Wr > O))
             throw new _(
-              "maxContentLength size of " + C + " exceeded",
+              "maxContentLength size of " + O + " exceeded",
               _.ERR_BAD_RESPONSE,
               g,
               I
@@ -2431,9 +2432,9 @@ const Lr = "1.20.0", an = 64 * 1024, ha = {
       );
       if (ae && !b && !ir) {
         let U;
-        if (Pe != null && (typeof Pe.byteLength == "number" ? U = Pe.byteLength : typeof Pe.size == "number" ? U = Pe.size : typeof Pe == "string" && (U = typeof n == "function" ? new n().encode(Pe).byteLength : Pe.length)), typeof U == "number" && U > C)
+        if (Pe != null && (typeof Pe.byteLength == "number" ? U = Pe.byteLength : typeof Pe.size == "number" ? U = Pe.size : typeof Pe == "string" && (U = typeof n == "function" ? new n().encode(Pe).byteLength : Pe.length)), typeof U == "number" && U > O)
           throw new _(
-            "maxContentLength size of " + C + " exceeded",
+            "maxContentLength size of " + O + " exceeded",
             _.ERR_BAD_RESPONSE,
             g,
             I
@@ -2449,12 +2450,12 @@ const Lr = "1.20.0", an = 64 * 1024, ha = {
           request: I
         });
       });
-    } catch (P) {
+    } catch (k) {
       if (L && L(), v && v.aborted && v.reason instanceof _) {
         const D = v.reason;
-        throw D.config = g, I && (D.request = I), P !== D && Object.defineProperty(D, "cause", {
+        throw D.config = g, I && (D.request = I), k !== D && Object.defineProperty(D, "cause", {
           __proto__: null,
-          value: P,
+          value: k,
           writable: !0,
           enumerable: !1,
           configurable: !0
@@ -2462,25 +2463,25 @@ const Lr = "1.20.0", an = 64 * 1024, ha = {
       }
       if (M)
         throw I && !M.request && (M.request = I), M;
-      if (P instanceof _)
-        throw I && !P.request && (P.request = I), P;
-      if (P && P.name === "TypeError" && /Load failed|fetch/i.test(P.message)) {
+      if (k instanceof _)
+        throw I && !k.request && (k.request = I), k;
+      if (k && k.name === "TypeError" && /Load failed|fetch/i.test(k.message)) {
         const D = new _(
           "Network Error",
           _.ERR_NETWORK,
           g,
           I,
-          P && P.response
+          k && k.response
         );
         throw Object.defineProperty(D, "cause", {
           __proto__: null,
-          value: P.cause || P,
+          value: k.cause || k,
           writable: !0,
           enumerable: !1,
           configurable: !0
         }), D;
       }
-      throw _.from(P, P && P.code, g, I, P && P.response);
+      throw _.from(k, k && k.code, g, I, k && k.response);
     }
   };
 }, ba = /* @__PURE__ */ new Map(), Ro = (e) => {
@@ -3094,11 +3095,13 @@ const Ae = (e, t) => {
    */
   getCurrentUser: async () => {
     try {
-      const t = await Ae().get(ye.ENDPOINTS.USER_ME);
+      const t = await Ae().get(ye.ENDPOINTS.USER_ME), r = t.data?.data ?? t.data;
       return {
-        id: t.data.id,
-        email: t.data.email,
-        name: t.data.name
+        id: r.id,
+        email: r.email,
+        name: r.name,
+        profilePicture: r.profilePicture,
+        role: r.role
       };
     } catch (e) {
       throw new Error(
@@ -3160,13 +3163,17 @@ const Ae = (e, t) => {
    */
   loginWithPasskey: async () => {
     try {
-      const e = Ae(), t = await e.post(ye.ENDPOINTS.PASSKEY_LOGIN_OPTIONS), { challengeId: r, options: n } = t.data, o = await ls({ optionsJSON: n }), s = await e.post(ye.ENDPOINTS.PASSKEY_LOGIN_VERIFY, {
-        challengeId: r,
-        response: o
-      });
+      const e = Ae(), t = await e.post(ye.ENDPOINTS.PASSKEY_LOGIN_OPTIONS), { challengeId: r, options: n } = t.data, o = await ls({ optionsJSON: n }), s = await e.post(
+        ye.ENDPOINTS.PASSKEY_LOGIN_VERIFY,
+        { challengeId: r, response: o },
+        { withCredentials: !0 }
+      );
       return {
-        accessToken: s.data.accessToken,
-        refreshToken: s.data.refreshToken
+        tokens: {
+          accessToken: s.data.accessToken,
+          refreshToken: s.data.refreshToken
+        },
+        user: s.data.user
       };
     } catch (e) {
       throw new Error(dn(e, "Passkey sign-in failed"));
@@ -3206,8 +3213,8 @@ function xa() {
   var e = typeof Symbol == "function" && Symbol.for, t = e ? /* @__PURE__ */ Symbol.for("react.element") : 60103, r = e ? /* @__PURE__ */ Symbol.for("react.portal") : 60106, n = e ? /* @__PURE__ */ Symbol.for("react.fragment") : 60107, o = e ? /* @__PURE__ */ Symbol.for("react.strict_mode") : 60108, s = e ? /* @__PURE__ */ Symbol.for("react.profiler") : 60114, i = e ? /* @__PURE__ */ Symbol.for("react.provider") : 60109, a = e ? /* @__PURE__ */ Symbol.for("react.context") : 60110, l = e ? /* @__PURE__ */ Symbol.for("react.async_mode") : 60111, f = e ? /* @__PURE__ */ Symbol.for("react.concurrent_mode") : 60111, u = e ? /* @__PURE__ */ Symbol.for("react.forward_ref") : 60112, p = e ? /* @__PURE__ */ Symbol.for("react.suspense") : 60113, m = e ? /* @__PURE__ */ Symbol.for("react.suspense_list") : 60120, b = e ? /* @__PURE__ */ Symbol.for("react.memo") : 60115, y = e ? /* @__PURE__ */ Symbol.for("react.lazy") : 60116, h = e ? /* @__PURE__ */ Symbol.for("react.block") : 60121, S = e ? /* @__PURE__ */ Symbol.for("react.fundamental") : 60117, g = e ? /* @__PURE__ */ Symbol.for("react.responder") : 60118, R = e ? /* @__PURE__ */ Symbol.for("react.scope") : 60119;
   function x(T) {
     if (typeof T == "object" && T !== null) {
-      var k = T.$$typeof;
-      switch (k) {
+      var N = T.$$typeof;
+      switch (N) {
         case t:
           switch (T = T.type, T) {
             case l:
@@ -3226,11 +3233,11 @@ function xa() {
                 case i:
                   return T;
                 default:
-                  return k;
+                  return N;
               }
           }
         case r:
-          return k;
+          return N;
       }
     }
   }
@@ -3306,11 +3313,11 @@ function va() {
         }
       }
     }
-    var T = l, k = f, j = a, re = i, Z = t, ee = u, q = n, c = y, N = b, C = r, H = s, z = o, ae = p, me = !1;
+    var T = l, N = f, j = a, re = i, Z = t, ee = u, q = n, c = y, P = b, O = r, H = s, z = o, ae = p, me = !1;
     function ot(A) {
-      return me || (me = !0, console.warn("The ReactIs.isAsyncMode() alias has been deprecated, and will be removed in React 17+. Update your code to use ReactIs.isConcurrentMode() instead. It has the exact same API.")), O(A) || w(A) === l;
+      return me || (me = !0, console.warn("The ReactIs.isAsyncMode() alias has been deprecated, and will be removed in React 17+. Update your code to use ReactIs.isConcurrentMode() instead. It has the exact same API.")), C(A) || w(A) === l;
     }
-    function O(A) {
+    function C(A) {
       return w(A) === f;
     }
     function v(A) {
@@ -3331,7 +3338,7 @@ function va() {
     function F(A) {
       return w(A) === y;
     }
-    function P(A) {
+    function k(A) {
       return w(A) === b;
     }
     function D(A) {
@@ -3346,7 +3353,7 @@ function va() {
     function fe(A) {
       return w(A) === p;
     }
-    Y.AsyncMode = T, Y.ConcurrentMode = k, Y.ContextConsumer = j, Y.ContextProvider = re, Y.Element = Z, Y.ForwardRef = ee, Y.Fragment = q, Y.Lazy = c, Y.Memo = N, Y.Portal = C, Y.Profiler = H, Y.StrictMode = z, Y.Suspense = ae, Y.isAsyncMode = ot, Y.isConcurrentMode = O, Y.isContextConsumer = v, Y.isContextProvider = I, Y.isElement = L, Y.isForwardRef = $, Y.isFragment = M, Y.isLazy = F, Y.isMemo = P, Y.isPortal = D, Y.isProfiler = V, Y.isStrictMode = W, Y.isSuspense = fe, Y.isValidElementType = x, Y.typeOf = w;
+    Y.AsyncMode = T, Y.ConcurrentMode = N, Y.ContextConsumer = j, Y.ContextProvider = re, Y.Element = Z, Y.ForwardRef = ee, Y.Fragment = q, Y.Lazy = c, Y.Memo = P, Y.Portal = O, Y.Profiler = H, Y.StrictMode = z, Y.Suspense = ae, Y.isAsyncMode = ot, Y.isConcurrentMode = C, Y.isContextConsumer = v, Y.isContextProvider = I, Y.isElement = L, Y.isForwardRef = $, Y.isFragment = M, Y.isLazy = F, Y.isMemo = k, Y.isPortal = D, Y.isProfiler = V, Y.isStrictMode = W, Y.isSuspense = fe, Y.isValidElementType = x, Y.typeOf = w;
   })()), Y;
 }
 var mn;
@@ -3478,8 +3485,8 @@ function Na() {
   }
   return Sr = function(a, l) {
     var f = typeof Symbol == "function" && Symbol.iterator, u = "@@iterator";
-    function p(O) {
-      var v = O && (f && O[f] || O[u]);
+    function p(C) {
+      var v = C && (f && C[f] || C[u]);
       if (typeof v == "function")
         return v;
     }
@@ -3496,52 +3503,52 @@ function Na() {
       arrayOf: x,
       element: w(),
       elementType: T(),
-      instanceOf: k,
+      instanceOf: N,
       node: ee(),
       objectOf: re,
       oneOf: j,
       oneOfType: Z,
       shape: c,
-      exact: N
+      exact: P
     };
-    function y(O, v) {
-      return O === v ? O !== 0 || 1 / O === 1 / v : O !== O && v !== v;
+    function y(C, v) {
+      return C === v ? C !== 0 || 1 / C === 1 / v : C !== C && v !== v;
     }
-    function h(O, v) {
-      this.message = O, this.data = v && typeof v == "object" ? v : {}, this.stack = "";
+    function h(C, v) {
+      this.message = C, this.data = v && typeof v == "object" ? v : {}, this.stack = "";
     }
     h.prototype = Error.prototype;
-    function S(O) {
+    function S(C) {
       if (process.env.NODE_ENV !== "production")
         var v = {}, I = 0;
-      function L(M, F, P, D, V, W, fe) {
-        if (D = D || m, W = W || P, fe !== r) {
+      function L(M, F, k, D, V, W, fe) {
+        if (D = D || m, W = W || k, fe !== r) {
           if (l) {
             var A = new Error(
               "Calling PropTypes validators directly is not supported by the `prop-types` package. Use `PropTypes.checkPropTypes()` to call them. Read more at http://fb.me/use-check-prop-types"
             );
             throw A.name = "Invariant Violation", A;
           } else if (process.env.NODE_ENV !== "production" && typeof console < "u") {
-            var ce = D + ":" + P;
+            var ce = D + ":" + k;
             !v[ce] && // Avoid spamming the console because they are often not actionable except for lib authors
             I < 3 && (s(
               "You are manually calling a React.PropTypes validation function for the `" + W + "` prop on `" + D + "`. This is deprecated and will throw in the standalone `prop-types` package. You may be seeing this warning due to a third-party PropTypes library. See https://fb.me/react-warning-dont-call-proptypes for details."
             ), v[ce] = !0, I++);
           }
         }
-        return F[P] == null ? M ? F[P] === null ? new h("The " + V + " `" + W + "` is marked as required " + ("in `" + D + "`, but its value is `null`.")) : new h("The " + V + " `" + W + "` is marked as required in " + ("`" + D + "`, but its value is `undefined`.")) : null : O(F, P, D, V, W);
+        return F[k] == null ? M ? F[k] === null ? new h("The " + V + " `" + W + "` is marked as required " + ("in `" + D + "`, but its value is `null`.")) : new h("The " + V + " `" + W + "` is marked as required in " + ("`" + D + "`, but its value is `undefined`.")) : null : C(F, k, D, V, W);
       }
       var $ = L.bind(null, !1);
       return $.isRequired = L.bind(null, !0), $;
     }
-    function g(O) {
-      function v(I, L, $, M, F, P) {
+    function g(C) {
+      function v(I, L, $, M, F, k) {
         var D = I[L], V = z(D);
-        if (V !== O) {
+        if (V !== C) {
           var W = ae(D);
           return new h(
-            "Invalid " + M + " `" + F + "` of type " + ("`" + W + "` supplied to `" + $ + "`, expected ") + ("`" + O + "`."),
-            { expectedType: O }
+            "Invalid " + M + " `" + F + "` of type " + ("`" + W + "` supplied to `" + $ + "`, expected ") + ("`" + C + "`."),
+            { expectedType: C }
           );
         }
         return null;
@@ -3551,17 +3558,17 @@ function Na() {
     function R() {
       return S(i);
     }
-    function x(O) {
+    function x(C) {
       function v(I, L, $, M, F) {
-        if (typeof O != "function")
+        if (typeof C != "function")
           return new h("Property `" + F + "` of component `" + $ + "` has invalid PropType notation inside arrayOf.");
-        var P = I[L];
-        if (!Array.isArray(P)) {
-          var D = z(P);
+        var k = I[L];
+        if (!Array.isArray(k)) {
+          var D = z(k);
           return new h("Invalid " + M + " `" + F + "` of type " + ("`" + D + "` supplied to `" + $ + "`, expected an array."));
         }
-        for (var V = 0; V < P.length; V++) {
-          var W = O(P, V, $, M, F + "[" + V + "]", r);
+        for (var V = 0; V < k.length; V++) {
+          var W = C(k, V, $, M, F + "[" + V + "]", r);
           if (W instanceof Error)
             return W;
         }
@@ -3570,64 +3577,64 @@ function Na() {
       return S(v);
     }
     function w() {
-      function O(v, I, L, $, M) {
+      function C(v, I, L, $, M) {
         var F = v[I];
         if (!a(F)) {
-          var P = z(F);
-          return new h("Invalid " + $ + " `" + M + "` of type " + ("`" + P + "` supplied to `" + L + "`, expected a single ReactElement."));
+          var k = z(F);
+          return new h("Invalid " + $ + " `" + M + "` of type " + ("`" + k + "` supplied to `" + L + "`, expected a single ReactElement."));
         }
         return null;
       }
-      return S(O);
+      return S(C);
     }
     function T() {
-      function O(v, I, L, $, M) {
+      function C(v, I, L, $, M) {
         var F = v[I];
         if (!e.isValidElementType(F)) {
-          var P = z(F);
-          return new h("Invalid " + $ + " `" + M + "` of type " + ("`" + P + "` supplied to `" + L + "`, expected a single ReactElement type."));
+          var k = z(F);
+          return new h("Invalid " + $ + " `" + M + "` of type " + ("`" + k + "` supplied to `" + L + "`, expected a single ReactElement type."));
         }
         return null;
       }
-      return S(O);
+      return S(C);
     }
-    function k(O) {
+    function N(C) {
       function v(I, L, $, M, F) {
-        if (!(I[L] instanceof O)) {
-          var P = O.name || m, D = ot(I[L]);
-          return new h("Invalid " + M + " `" + F + "` of type " + ("`" + D + "` supplied to `" + $ + "`, expected ") + ("instance of `" + P + "`."));
+        if (!(I[L] instanceof C)) {
+          var k = C.name || m, D = ot(I[L]);
+          return new h("Invalid " + M + " `" + F + "` of type " + ("`" + D + "` supplied to `" + $ + "`, expected ") + ("instance of `" + k + "`."));
         }
         return null;
       }
       return S(v);
     }
-    function j(O) {
-      if (!Array.isArray(O))
+    function j(C) {
+      if (!Array.isArray(C))
         return process.env.NODE_ENV !== "production" && (arguments.length > 1 ? s(
           "Invalid arguments supplied to oneOf, expected an array, got " + arguments.length + " arguments. A common mistake is to write oneOf(x, y, z) instead of oneOf([x, y, z])."
         ) : s("Invalid argument supplied to oneOf, expected an array.")), i;
       function v(I, L, $, M, F) {
-        for (var P = I[L], D = 0; D < O.length; D++)
-          if (y(P, O[D]))
+        for (var k = I[L], D = 0; D < C.length; D++)
+          if (y(k, C[D]))
             return null;
-        var V = JSON.stringify(O, function(fe, A) {
+        var V = JSON.stringify(C, function(fe, A) {
           var ce = ae(A);
           return ce === "symbol" ? String(A) : A;
         });
-        return new h("Invalid " + M + " `" + F + "` of value `" + String(P) + "` " + ("supplied to `" + $ + "`, expected one of " + V + "."));
+        return new h("Invalid " + M + " `" + F + "` of value `" + String(k) + "` " + ("supplied to `" + $ + "`, expected one of " + V + "."));
       }
       return S(v);
     }
-    function re(O) {
+    function re(C) {
       function v(I, L, $, M, F) {
-        if (typeof O != "function")
+        if (typeof C != "function")
           return new h("Property `" + F + "` of component `" + $ + "` has invalid PropType notation inside objectOf.");
-        var P = I[L], D = z(P);
+        var k = I[L], D = z(k);
         if (D !== "object")
           return new h("Invalid " + M + " `" + F + "` of type " + ("`" + D + "` supplied to `" + $ + "`, expected an object."));
-        for (var V in P)
-          if (n(P, V)) {
-            var W = O(P, V, $, M, F + "." + V, r);
+        for (var V in k)
+          if (n(k, V)) {
+            var W = C(k, V, $, M, F + "." + V, r);
             if (W instanceof Error)
               return W;
           }
@@ -3635,49 +3642,49 @@ function Na() {
       }
       return S(v);
     }
-    function Z(O) {
-      if (!Array.isArray(O))
+    function Z(C) {
+      if (!Array.isArray(C))
         return process.env.NODE_ENV !== "production" && s("Invalid argument supplied to oneOfType, expected an instance of array."), i;
-      for (var v = 0; v < O.length; v++) {
-        var I = O[v];
+      for (var v = 0; v < C.length; v++) {
+        var I = C[v];
         if (typeof I != "function")
           return s(
             "Invalid argument supplied to oneOfType. Expected an array of check functions, but received " + me(I) + " at index " + v + "."
           ), i;
       }
-      function L($, M, F, P, D) {
-        for (var V = [], W = 0; W < O.length; W++) {
-          var fe = O[W], A = fe($, M, F, P, D, r);
+      function L($, M, F, k, D) {
+        for (var V = [], W = 0; W < C.length; W++) {
+          var fe = C[W], A = fe($, M, F, k, D, r);
           if (A == null)
             return null;
           A.data && n(A.data, "expectedType") && V.push(A.data.expectedType);
         }
         var ce = V.length > 0 ? ", expected one of type [" + V.join(", ") + "]" : "";
-        return new h("Invalid " + P + " `" + D + "` supplied to " + ("`" + F + "`" + ce + "."));
+        return new h("Invalid " + k + " `" + D + "` supplied to " + ("`" + F + "`" + ce + "."));
       }
       return S(L);
     }
     function ee() {
-      function O(v, I, L, $, M) {
-        return C(v[I]) ? null : new h("Invalid " + $ + " `" + M + "` supplied to " + ("`" + L + "`, expected a ReactNode."));
+      function C(v, I, L, $, M) {
+        return O(v[I]) ? null : new h("Invalid " + $ + " `" + M + "` supplied to " + ("`" + L + "`, expected a ReactNode."));
       }
-      return S(O);
+      return S(C);
     }
-    function q(O, v, I, L, $) {
+    function q(C, v, I, L, $) {
       return new h(
-        (O || "React class") + ": " + v + " type `" + I + "." + L + "` is invalid; it must be a function, usually from the `prop-types` package, but received `" + $ + "`."
+        (C || "React class") + ": " + v + " type `" + I + "." + L + "` is invalid; it must be a function, usually from the `prop-types` package, but received `" + $ + "`."
       );
     }
-    function c(O) {
+    function c(C) {
       function v(I, L, $, M, F) {
-        var P = I[L], D = z(P);
+        var k = I[L], D = z(k);
         if (D !== "object")
           return new h("Invalid " + M + " `" + F + "` of type `" + D + "` " + ("supplied to `" + $ + "`, expected `object`."));
-        for (var V in O) {
-          var W = O[V];
+        for (var V in C) {
+          var W = C[V];
           if (typeof W != "function")
             return q($, M, F, V, ae(W));
-          var fe = W(P, V, $, M, F + "." + V, r);
+          var fe = W(k, V, $, M, F + "." + V, r);
           if (fe)
             return fe;
         }
@@ -3685,22 +3692,22 @@ function Na() {
       }
       return S(v);
     }
-    function N(O) {
+    function P(C) {
       function v(I, L, $, M, F) {
-        var P = I[L], D = z(P);
+        var k = I[L], D = z(k);
         if (D !== "object")
           return new h("Invalid " + M + " `" + F + "` of type `" + D + "` " + ("supplied to `" + $ + "`, expected `object`."));
-        var V = t({}, I[L], O);
+        var V = t({}, I[L], C);
         for (var W in V) {
-          var fe = O[W];
-          if (n(O, W) && typeof fe != "function")
+          var fe = C[W];
+          if (n(C, W) && typeof fe != "function")
             return q($, M, F, W, ae(fe));
           if (!fe)
             return new h(
               "Invalid " + M + " `" + F + "` key `" + W + "` supplied to `" + $ + "`.\nBad object: " + JSON.stringify(I[L], null, "  ") + `
-Valid keys: ` + JSON.stringify(Object.keys(O), null, "  ")
+Valid keys: ` + JSON.stringify(Object.keys(C), null, "  ")
             );
-          var A = fe(P, W, $, M, F + "." + W, r);
+          var A = fe(k, W, $, M, F + "." + W, r);
           if (A)
             return A;
         }
@@ -3708,30 +3715,30 @@ Valid keys: ` + JSON.stringify(Object.keys(O), null, "  ")
       }
       return S(v);
     }
-    function C(O) {
-      switch (typeof O) {
+    function O(C) {
+      switch (typeof C) {
         case "number":
         case "string":
         case "undefined":
           return !0;
         case "boolean":
-          return !O;
+          return !C;
         case "object":
-          if (Array.isArray(O))
-            return O.every(C);
-          if (O === null || a(O))
+          if (Array.isArray(C))
+            return C.every(O);
+          if (C === null || a(C))
             return !0;
-          var v = p(O);
+          var v = p(C);
           if (v) {
-            var I = v.call(O), L;
-            if (v !== O.entries) {
+            var I = v.call(C), L;
+            if (v !== C.entries) {
               for (; !(L = I.next()).done; )
-                if (!C(L.value))
+                if (!O(L.value))
                   return !1;
             } else
               for (; !(L = I.next()).done; ) {
                 var $ = L.value;
-                if ($ && !C($[1]))
+                if ($ && !O($[1]))
                   return !1;
               }
           } else
@@ -3741,27 +3748,27 @@ Valid keys: ` + JSON.stringify(Object.keys(O), null, "  ")
           return !1;
       }
     }
-    function H(O, v) {
-      return O === "symbol" ? !0 : v ? v["@@toStringTag"] === "Symbol" || typeof Symbol == "function" && v instanceof Symbol : !1;
+    function H(C, v) {
+      return C === "symbol" ? !0 : v ? v["@@toStringTag"] === "Symbol" || typeof Symbol == "function" && v instanceof Symbol : !1;
     }
-    function z(O) {
-      var v = typeof O;
-      return Array.isArray(O) ? "array" : O instanceof RegExp ? "object" : H(v, O) ? "symbol" : v;
+    function z(C) {
+      var v = typeof C;
+      return Array.isArray(C) ? "array" : C instanceof RegExp ? "object" : H(v, C) ? "symbol" : v;
     }
-    function ae(O) {
-      if (typeof O > "u" || O === null)
-        return "" + O;
-      var v = z(O);
+    function ae(C) {
+      if (typeof C > "u" || C === null)
+        return "" + C;
+      var v = z(C);
       if (v === "object") {
-        if (O instanceof Date)
+        if (C instanceof Date)
           return "date";
-        if (O instanceof RegExp)
+        if (C instanceof RegExp)
           return "regexp";
       }
       return v;
     }
-    function me(O) {
-      var v = ae(O);
+    function me(C) {
+      var v = ae(C);
       switch (v) {
         case "array":
         case "object":
@@ -3774,8 +3781,8 @@ Valid keys: ` + JSON.stringify(Object.keys(O), null, "  ")
           return v;
       }
     }
-    function ot(O) {
-      return !O.constructor || !O.constructor.name ? m : O.constructor.name;
+    function ot(C) {
+      return !C.constructor || !C.constructor.name ? m : C.constructor.name;
     }
     return b.checkPropTypes = o, b.resetWarningCache = o.resetWarningCache, b.PropTypes = b, b;
   }, Sr;
@@ -5108,36 +5115,36 @@ function Gc(e, t = {}) {
   } = i;
   if (Object.entries(S || {}).forEach(([w, T]) => {
     const {
-      vars: k,
+      vars: N,
       css: j,
       varsWithDefaults: re
     } = Tr(T, t);
     b = Se(b, re), y[w] = {
       css: j,
-      vars: k
+      vars: N
     };
   }), h) {
     const {
       css: w,
       vars: T,
-      varsWithDefaults: k
+      varsWithDefaults: N
     } = Tr(h, t);
-    b = Se(b, k), y[l] = {
+    b = Se(b, N), y[l] = {
       css: w,
       vars: T
     };
   }
   function g(w, T) {
-    let k = o;
-    if (o === "class" && (k = ".%s"), o === "data" && (k = "[data-%s]"), o?.startsWith("data-") && !o.includes("%s") && (k = `[${o}="%s"]`), w) {
-      if (k === "media")
+    let N = o;
+    if (o === "class" && (N = ".%s"), o === "data" && (N = "[data-%s]"), o?.startsWith("data-") && !o.includes("%s") && (N = `[${o}="%s"]`), w) {
+      if (N === "media")
         return e.defaultColorScheme === w ? ":root" : {
           [`@media (prefers-color-scheme: ${i[w]?.palette?.mode || w})`]: {
             ":root": T
           }
         };
-      if (k)
-        return e.defaultColorScheme === w ? `:root, ${k.replace("%s", String(w))}` : k.replace("%s", String(w));
+      if (N)
+        return e.defaultColorScheme === w ? `:root, ${N.replace("%s", String(w))}` : N.replace("%s", String(w));
     }
     return ":root";
   }
@@ -5155,14 +5162,14 @@ function Gc(e, t = {}) {
     },
     generateStyleSheets: () => {
       const w = [], T = e.defaultColorScheme || "light";
-      function k(Z, ee) {
+      function N(Z, ee) {
         Object.keys(ee).length && w.push(typeof Z == "string" ? {
           [Z]: {
             ...ee
           }
         } : Z);
       }
-      k(r(void 0, {
+      N(r(void 0, {
         ...p
       }), p);
       const {
@@ -5178,7 +5185,7 @@ function Gc(e, t = {}) {
         } : {
           ...Z
         };
-        k(r(T, {
+        N(r(T, {
           ...q
         }), q);
       }
@@ -5191,7 +5198,7 @@ function Gc(e, t = {}) {
         } : {
           ...ee
         };
-        k(r(Z, {
+        N(r(Z, {
           ...c
         }), c);
       }), s && w.push({
@@ -5992,7 +5999,7 @@ function Pl(e = {}, ...t) {
   i && (w = "oklch");
   const T = Rr(w, R, x, u, m);
   h && !R.light && Rr(w, R, h, void 0, "light"), S && !R.dark && Rr(w, R, S, void 0, "dark");
-  let k = {
+  let N = {
     defaultColorScheme: m,
     ...T,
     cssVarPrefix: s,
@@ -6006,13 +6013,13 @@ function Pl(e = {}, ...t) {
     },
     spacing: xl(u.spacing)
   };
-  Object.keys(k.colorSchemes).forEach((q) => {
-    const c = k.colorSchemes[q].palette, N = (H) => {
+  Object.keys(N.colorSchemes).forEach((q) => {
+    const c = N.colorSchemes[q].palette, P = (H) => {
       const z = H.split("-"), ae = z[1], me = z[2];
       return b(H, c[ae][me]);
     };
     c.mode === "light" && (E(c.common, "background", "#fff"), E(c.common, "onBackground", "#000")), c.mode === "dark" && (E(c.common, "background", "#000"), E(c.common, "onBackground", "#fff"));
-    function C(H, z, ae) {
+    function O(H, z, ae) {
       if (w) {
         let me;
         return H === He && (me = `transparent ${((1 - ae) * 100).toFixed(0)}%`), H === G && (me = `#000 ${(ae * 100).toFixed(0)}%`), H === J && (me = `#fff ${(ae * 100).toFixed(0)}%`), `color-mix(in ${w}, ${z}, ${me})`;
@@ -6020,44 +6027,44 @@ function Pl(e = {}, ...t) {
       return H(z, ae);
     }
     if (_l(c, ["Alert", "AppBar", "Avatar", "Button", "Chip", "FilledInput", "LinearProgress", "Skeleton", "Slider", "SnackbarContent", "SpeedDialAction", "StepConnector", "StepContent", "Switch", "TableCell", "Tooltip"]), c.mode === "light") {
-      E(c.Alert, "errorColor", C(G, c.error.light, 0.6)), E(c.Alert, "infoColor", C(G, c.info.light, 0.6)), E(c.Alert, "successColor", C(G, c.success.light, 0.6)), E(c.Alert, "warningColor", C(G, c.warning.light, 0.6)), E(c.Alert, "errorFilledBg", N("palette-error-main")), E(c.Alert, "infoFilledBg", N("palette-info-main")), E(c.Alert, "successFilledBg", N("palette-success-main")), E(c.Alert, "warningFilledBg", N("palette-warning-main")), E(c.Alert, "errorFilledColor", Ce(() => c.getContrastText(c.error.main))), E(c.Alert, "infoFilledColor", Ce(() => c.getContrastText(c.info.main))), E(c.Alert, "successFilledColor", Ce(() => c.getContrastText(c.success.main))), E(c.Alert, "warningFilledColor", Ce(() => c.getContrastText(c.warning.main))), E(c.Alert, "errorStandardBg", C(J, c.error.light, 0.9)), E(c.Alert, "infoStandardBg", C(J, c.info.light, 0.9)), E(c.Alert, "successStandardBg", C(J, c.success.light, 0.9)), E(c.Alert, "warningStandardBg", C(J, c.warning.light, 0.9)), E(c.Alert, "errorIconColor", N("palette-error-main")), E(c.Alert, "infoIconColor", N("palette-info-main")), E(c.Alert, "successIconColor", N("palette-success-main")), E(c.Alert, "warningIconColor", N("palette-warning-main")), E(c.AppBar, "defaultBg", N("palette-grey-100")), E(c.Avatar, "defaultBg", N("palette-grey-400")), E(c.Button, "inheritContainedBg", N("palette-grey-300")), E(c.Button, "inheritContainedHoverBg", N("palette-grey-A100")), E(c.Chip, "defaultBorder", N("palette-grey-400")), E(c.Chip, "defaultAvatarColor", N("palette-grey-700")), E(c.Chip, "defaultIconColor", N("palette-grey-700")), E(c.FilledInput, "bg", "rgba(0, 0, 0, 0.06)"), E(c.FilledInput, "hoverBg", "rgba(0, 0, 0, 0.09)"), E(c.FilledInput, "disabledBg", "rgba(0, 0, 0, 0.12)"), E(c.LinearProgress, "primaryBg", C(J, c.primary.main, 0.62)), E(c.LinearProgress, "secondaryBg", C(J, c.secondary.main, 0.62)), E(c.LinearProgress, "errorBg", C(J, c.error.main, 0.62)), E(c.LinearProgress, "infoBg", C(J, c.info.main, 0.62)), E(c.LinearProgress, "successBg", C(J, c.success.main, 0.62)), E(c.LinearProgress, "warningBg", C(J, c.warning.main, 0.62)), E(c.Skeleton, "bg", w ? C(He, c.text.primary, 0.11) : `rgba(${N("palette-text-primaryChannel")} / 0.11)`), E(c.Slider, "primaryTrack", C(J, c.primary.main, 0.62)), E(c.Slider, "secondaryTrack", C(J, c.secondary.main, 0.62)), E(c.Slider, "errorTrack", C(J, c.error.main, 0.62)), E(c.Slider, "infoTrack", C(J, c.info.main, 0.62)), E(c.Slider, "successTrack", C(J, c.success.main, 0.62)), E(c.Slider, "warningTrack", C(J, c.warning.main, 0.62));
-      const H = w ? C(G, c.background.default, 0.6825) : Nt(c.background.default, 0.8);
-      E(c.SnackbarContent, "bg", H), E(c.SnackbarContent, "color", Ce(() => w ? vr.text.primary : c.getContrastText(H))), E(c.SpeedDialAction, "fabHoverBg", Nt(c.background.paper, 0.15)), E(c.StepConnector, "border", N("palette-grey-400")), E(c.StepContent, "border", N("palette-grey-400")), E(c.Switch, "defaultColor", N("palette-common-white")), E(c.Switch, "defaultDisabledColor", N("palette-grey-100")), E(c.Switch, "primaryDisabledColor", C(J, c.primary.main, 0.62)), E(c.Switch, "secondaryDisabledColor", C(J, c.secondary.main, 0.62)), E(c.Switch, "errorDisabledColor", C(J, c.error.main, 0.62)), E(c.Switch, "infoDisabledColor", C(J, c.info.main, 0.62)), E(c.Switch, "successDisabledColor", C(J, c.success.main, 0.62)), E(c.Switch, "warningDisabledColor", C(J, c.warning.main, 0.62)), E(c.TableCell, "border", C(J, C(He, c.divider, 1), 0.88)), E(c.Tooltip, "bg", C(He, c.grey[700], 0.92));
+      E(c.Alert, "errorColor", O(G, c.error.light, 0.6)), E(c.Alert, "infoColor", O(G, c.info.light, 0.6)), E(c.Alert, "successColor", O(G, c.success.light, 0.6)), E(c.Alert, "warningColor", O(G, c.warning.light, 0.6)), E(c.Alert, "errorFilledBg", P("palette-error-main")), E(c.Alert, "infoFilledBg", P("palette-info-main")), E(c.Alert, "successFilledBg", P("palette-success-main")), E(c.Alert, "warningFilledBg", P("palette-warning-main")), E(c.Alert, "errorFilledColor", Ce(() => c.getContrastText(c.error.main))), E(c.Alert, "infoFilledColor", Ce(() => c.getContrastText(c.info.main))), E(c.Alert, "successFilledColor", Ce(() => c.getContrastText(c.success.main))), E(c.Alert, "warningFilledColor", Ce(() => c.getContrastText(c.warning.main))), E(c.Alert, "errorStandardBg", O(J, c.error.light, 0.9)), E(c.Alert, "infoStandardBg", O(J, c.info.light, 0.9)), E(c.Alert, "successStandardBg", O(J, c.success.light, 0.9)), E(c.Alert, "warningStandardBg", O(J, c.warning.light, 0.9)), E(c.Alert, "errorIconColor", P("palette-error-main")), E(c.Alert, "infoIconColor", P("palette-info-main")), E(c.Alert, "successIconColor", P("palette-success-main")), E(c.Alert, "warningIconColor", P("palette-warning-main")), E(c.AppBar, "defaultBg", P("palette-grey-100")), E(c.Avatar, "defaultBg", P("palette-grey-400")), E(c.Button, "inheritContainedBg", P("palette-grey-300")), E(c.Button, "inheritContainedHoverBg", P("palette-grey-A100")), E(c.Chip, "defaultBorder", P("palette-grey-400")), E(c.Chip, "defaultAvatarColor", P("palette-grey-700")), E(c.Chip, "defaultIconColor", P("palette-grey-700")), E(c.FilledInput, "bg", "rgba(0, 0, 0, 0.06)"), E(c.FilledInput, "hoverBg", "rgba(0, 0, 0, 0.09)"), E(c.FilledInput, "disabledBg", "rgba(0, 0, 0, 0.12)"), E(c.LinearProgress, "primaryBg", O(J, c.primary.main, 0.62)), E(c.LinearProgress, "secondaryBg", O(J, c.secondary.main, 0.62)), E(c.LinearProgress, "errorBg", O(J, c.error.main, 0.62)), E(c.LinearProgress, "infoBg", O(J, c.info.main, 0.62)), E(c.LinearProgress, "successBg", O(J, c.success.main, 0.62)), E(c.LinearProgress, "warningBg", O(J, c.warning.main, 0.62)), E(c.Skeleton, "bg", w ? O(He, c.text.primary, 0.11) : `rgba(${P("palette-text-primaryChannel")} / 0.11)`), E(c.Slider, "primaryTrack", O(J, c.primary.main, 0.62)), E(c.Slider, "secondaryTrack", O(J, c.secondary.main, 0.62)), E(c.Slider, "errorTrack", O(J, c.error.main, 0.62)), E(c.Slider, "infoTrack", O(J, c.info.main, 0.62)), E(c.Slider, "successTrack", O(J, c.success.main, 0.62)), E(c.Slider, "warningTrack", O(J, c.warning.main, 0.62));
+      const H = w ? O(G, c.background.default, 0.6825) : Nt(c.background.default, 0.8);
+      E(c.SnackbarContent, "bg", H), E(c.SnackbarContent, "color", Ce(() => w ? vr.text.primary : c.getContrastText(H))), E(c.SpeedDialAction, "fabHoverBg", Nt(c.background.paper, 0.15)), E(c.StepConnector, "border", P("palette-grey-400")), E(c.StepContent, "border", P("palette-grey-400")), E(c.Switch, "defaultColor", P("palette-common-white")), E(c.Switch, "defaultDisabledColor", P("palette-grey-100")), E(c.Switch, "primaryDisabledColor", O(J, c.primary.main, 0.62)), E(c.Switch, "secondaryDisabledColor", O(J, c.secondary.main, 0.62)), E(c.Switch, "errorDisabledColor", O(J, c.error.main, 0.62)), E(c.Switch, "infoDisabledColor", O(J, c.info.main, 0.62)), E(c.Switch, "successDisabledColor", O(J, c.success.main, 0.62)), E(c.Switch, "warningDisabledColor", O(J, c.warning.main, 0.62)), E(c.TableCell, "border", O(J, O(He, c.divider, 1), 0.88)), E(c.Tooltip, "bg", O(He, c.grey[700], 0.92));
     }
     if (c.mode === "dark") {
-      E(c.Alert, "errorColor", C(J, c.error.light, 0.6)), E(c.Alert, "infoColor", C(J, c.info.light, 0.6)), E(c.Alert, "successColor", C(J, c.success.light, 0.6)), E(c.Alert, "warningColor", C(J, c.warning.light, 0.6)), E(c.Alert, "errorFilledBg", N("palette-error-dark")), E(c.Alert, "infoFilledBg", N("palette-info-dark")), E(c.Alert, "successFilledBg", N("palette-success-dark")), E(c.Alert, "warningFilledBg", N("palette-warning-dark")), E(c.Alert, "errorFilledColor", Ce(() => c.getContrastText(c.error.dark))), E(c.Alert, "infoFilledColor", Ce(() => c.getContrastText(c.info.dark))), E(c.Alert, "successFilledColor", Ce(() => c.getContrastText(c.success.dark))), E(c.Alert, "warningFilledColor", Ce(() => c.getContrastText(c.warning.dark))), E(c.Alert, "errorStandardBg", C(G, c.error.light, 0.9)), E(c.Alert, "infoStandardBg", C(G, c.info.light, 0.9)), E(c.Alert, "successStandardBg", C(G, c.success.light, 0.9)), E(c.Alert, "warningStandardBg", C(G, c.warning.light, 0.9)), E(c.Alert, "errorIconColor", N("palette-error-main")), E(c.Alert, "infoIconColor", N("palette-info-main")), E(c.Alert, "successIconColor", N("palette-success-main")), E(c.Alert, "warningIconColor", N("palette-warning-main")), E(c.AppBar, "defaultBg", N("palette-grey-900")), E(c.AppBar, "darkBg", N("palette-background-paper")), E(c.AppBar, "darkColor", N("palette-text-primary")), E(c.Avatar, "defaultBg", N("palette-grey-600")), E(c.Button, "inheritContainedBg", N("palette-grey-800")), E(c.Button, "inheritContainedHoverBg", N("palette-grey-700")), E(c.Chip, "defaultBorder", N("palette-grey-700")), E(c.Chip, "defaultAvatarColor", N("palette-grey-300")), E(c.Chip, "defaultIconColor", N("palette-grey-300")), E(c.FilledInput, "bg", "rgba(255, 255, 255, 0.09)"), E(c.FilledInput, "hoverBg", "rgba(255, 255, 255, 0.13)"), E(c.FilledInput, "disabledBg", "rgba(255, 255, 255, 0.12)"), E(c.LinearProgress, "primaryBg", C(G, c.primary.main, 0.5)), E(c.LinearProgress, "secondaryBg", C(G, c.secondary.main, 0.5)), E(c.LinearProgress, "errorBg", C(G, c.error.main, 0.5)), E(c.LinearProgress, "infoBg", C(G, c.info.main, 0.5)), E(c.LinearProgress, "successBg", C(G, c.success.main, 0.5)), E(c.LinearProgress, "warningBg", C(G, c.warning.main, 0.5)), E(c.Skeleton, "bg", w ? C(He, c.text.primary, 0.13) : `rgba(${N("palette-text-primaryChannel")} / 0.13)`), E(c.Slider, "primaryTrack", C(G, c.primary.main, 0.5)), E(c.Slider, "secondaryTrack", C(G, c.secondary.main, 0.5)), E(c.Slider, "errorTrack", C(G, c.error.main, 0.5)), E(c.Slider, "infoTrack", C(G, c.info.main, 0.5)), E(c.Slider, "successTrack", C(G, c.success.main, 0.5)), E(c.Slider, "warningTrack", C(G, c.warning.main, 0.5));
-      const H = w ? C(J, c.background.default, 0.985) : Nt(c.background.default, 0.98);
-      E(c.SnackbarContent, "bg", H), E(c.SnackbarContent, "color", Ce(() => w ? Bo.text.primary : c.getContrastText(H))), E(c.SpeedDialAction, "fabHoverBg", Nt(c.background.paper, 0.15)), E(c.StepConnector, "border", N("palette-grey-600")), E(c.StepContent, "border", N("palette-grey-600")), E(c.Switch, "defaultColor", N("palette-grey-300")), E(c.Switch, "defaultDisabledColor", N("palette-grey-600")), E(c.Switch, "primaryDisabledColor", C(G, c.primary.main, 0.55)), E(c.Switch, "secondaryDisabledColor", C(G, c.secondary.main, 0.55)), E(c.Switch, "errorDisabledColor", C(G, c.error.main, 0.55)), E(c.Switch, "infoDisabledColor", C(G, c.info.main, 0.55)), E(c.Switch, "successDisabledColor", C(G, c.success.main, 0.55)), E(c.Switch, "warningDisabledColor", C(G, c.warning.main, 0.55)), E(c.TableCell, "border", C(G, C(He, c.divider, 1), 0.68)), E(c.Tooltip, "bg", C(He, c.grey[700], 0.92));
+      E(c.Alert, "errorColor", O(J, c.error.light, 0.6)), E(c.Alert, "infoColor", O(J, c.info.light, 0.6)), E(c.Alert, "successColor", O(J, c.success.light, 0.6)), E(c.Alert, "warningColor", O(J, c.warning.light, 0.6)), E(c.Alert, "errorFilledBg", P("palette-error-dark")), E(c.Alert, "infoFilledBg", P("palette-info-dark")), E(c.Alert, "successFilledBg", P("palette-success-dark")), E(c.Alert, "warningFilledBg", P("palette-warning-dark")), E(c.Alert, "errorFilledColor", Ce(() => c.getContrastText(c.error.dark))), E(c.Alert, "infoFilledColor", Ce(() => c.getContrastText(c.info.dark))), E(c.Alert, "successFilledColor", Ce(() => c.getContrastText(c.success.dark))), E(c.Alert, "warningFilledColor", Ce(() => c.getContrastText(c.warning.dark))), E(c.Alert, "errorStandardBg", O(G, c.error.light, 0.9)), E(c.Alert, "infoStandardBg", O(G, c.info.light, 0.9)), E(c.Alert, "successStandardBg", O(G, c.success.light, 0.9)), E(c.Alert, "warningStandardBg", O(G, c.warning.light, 0.9)), E(c.Alert, "errorIconColor", P("palette-error-main")), E(c.Alert, "infoIconColor", P("palette-info-main")), E(c.Alert, "successIconColor", P("palette-success-main")), E(c.Alert, "warningIconColor", P("palette-warning-main")), E(c.AppBar, "defaultBg", P("palette-grey-900")), E(c.AppBar, "darkBg", P("palette-background-paper")), E(c.AppBar, "darkColor", P("palette-text-primary")), E(c.Avatar, "defaultBg", P("palette-grey-600")), E(c.Button, "inheritContainedBg", P("palette-grey-800")), E(c.Button, "inheritContainedHoverBg", P("palette-grey-700")), E(c.Chip, "defaultBorder", P("palette-grey-700")), E(c.Chip, "defaultAvatarColor", P("palette-grey-300")), E(c.Chip, "defaultIconColor", P("palette-grey-300")), E(c.FilledInput, "bg", "rgba(255, 255, 255, 0.09)"), E(c.FilledInput, "hoverBg", "rgba(255, 255, 255, 0.13)"), E(c.FilledInput, "disabledBg", "rgba(255, 255, 255, 0.12)"), E(c.LinearProgress, "primaryBg", O(G, c.primary.main, 0.5)), E(c.LinearProgress, "secondaryBg", O(G, c.secondary.main, 0.5)), E(c.LinearProgress, "errorBg", O(G, c.error.main, 0.5)), E(c.LinearProgress, "infoBg", O(G, c.info.main, 0.5)), E(c.LinearProgress, "successBg", O(G, c.success.main, 0.5)), E(c.LinearProgress, "warningBg", O(G, c.warning.main, 0.5)), E(c.Skeleton, "bg", w ? O(He, c.text.primary, 0.13) : `rgba(${P("palette-text-primaryChannel")} / 0.13)`), E(c.Slider, "primaryTrack", O(G, c.primary.main, 0.5)), E(c.Slider, "secondaryTrack", O(G, c.secondary.main, 0.5)), E(c.Slider, "errorTrack", O(G, c.error.main, 0.5)), E(c.Slider, "infoTrack", O(G, c.info.main, 0.5)), E(c.Slider, "successTrack", O(G, c.success.main, 0.5)), E(c.Slider, "warningTrack", O(G, c.warning.main, 0.5));
+      const H = w ? O(J, c.background.default, 0.985) : Nt(c.background.default, 0.98);
+      E(c.SnackbarContent, "bg", H), E(c.SnackbarContent, "color", Ce(() => w ? Bo.text.primary : c.getContrastText(H))), E(c.SpeedDialAction, "fabHoverBg", Nt(c.background.paper, 0.15)), E(c.StepConnector, "border", P("palette-grey-600")), E(c.StepContent, "border", P("palette-grey-600")), E(c.Switch, "defaultColor", P("palette-grey-300")), E(c.Switch, "defaultDisabledColor", P("palette-grey-600")), E(c.Switch, "primaryDisabledColor", O(G, c.primary.main, 0.55)), E(c.Switch, "secondaryDisabledColor", O(G, c.secondary.main, 0.55)), E(c.Switch, "errorDisabledColor", O(G, c.error.main, 0.55)), E(c.Switch, "infoDisabledColor", O(G, c.info.main, 0.55)), E(c.Switch, "successDisabledColor", O(G, c.success.main, 0.55)), E(c.Switch, "warningDisabledColor", O(G, c.warning.main, 0.55)), E(c.TableCell, "border", O(G, O(He, c.divider, 1), 0.68)), E(c.Tooltip, "bg", O(He, c.grey[700], 0.92));
     }
     ke(c.background, "default"), ke(c.background, "paper"), ke(c.common, "background"), ke(c.common, "onBackground"), ke(c, "divider"), Object.keys(c).forEach((H) => {
       const z = c[H];
       H !== "tonalOffset" && z && typeof z == "object" && (z.main && E(c[H], "mainChannel", dt(pt(z.main))), z.light && E(c[H], "lightChannel", dt(pt(z.light))), z.dark && E(c[H], "darkChannel", dt(pt(z.dark))), z.contrastText && E(c[H], "contrastTextChannel", dt(pt(z.contrastText))), H === "text" && (ke(c[H], "primary"), ke(c[H], "secondary")), H === "action" && (z.active && ke(c[H], "active"), z.selected && ke(c[H], "selected")));
     });
-  }), k = t.reduce((q, c) => Se(q, c), k);
+  }), N = t.reduce((q, c) => Se(q, c), N);
   const j = {
     prefix: s,
     disableCssColorScheme: o,
     shouldSkipGeneratingVar: a,
-    getSelector: Al(k),
+    getSelector: Al(N),
     enableContrastVars: i
   }, {
     vars: re,
     generateThemeVars: Z,
     generateStyleSheets: ee
-  } = Gc(k, j);
-  return k.vars = re, Object.entries(k.colorSchemes[k.defaultColorScheme]).forEach(([q, c]) => {
-    k[q] = c;
-  }), k.generateThemeVars = Z, k.generateStyleSheets = ee, k.generateSpacing = function() {
+  } = Gc(N, j);
+  return N.vars = re, Object.entries(N.colorSchemes[N.defaultColorScheme]).forEach(([q, c]) => {
+    N[q] = c;
+  }), N.generateThemeVars = Z, N.generateStyleSheets = ee, N.generateSpacing = function() {
     return Io(u.spacing, Fr(this));
-  }, k.getColorSchemeSelector = Jc(l), k.spacing = k.generateSpacing(), k.shouldSkipGeneratingVar = a, k.unstable_sxConfig = {
+  }, N.getColorSchemeSelector = Jc(l), N.spacing = N.generateSpacing(), N.shouldSkipGeneratingVar = a, N.unstable_sxConfig = {
     ...tr,
     ...u?.unstable_sxConfig
-  }, k.unstable_sx = function(c) {
+  }, N.unstable_sx = function(c) {
     return rr({
       sx: c,
       theme: this
     });
-  }, k.toRuntimeSource = Mo, k;
+  }, N.toRuntimeSource = Mo, N;
 }
 function Fn(e, t, r) {
   e.colorSchemes && r && (e.colorSchemes[t] = {
@@ -6526,39 +6533,39 @@ const Ll = Vr.object({
       return "";
     if (typeof window > "u" || !window.grecaptcha)
       throw new Error("reCAPTCHA is not loaded");
-    return new Promise((c, N) => {
-      const C = () => {
-        R().then(c).catch(N);
+    return new Promise((c, P) => {
+      const O = () => {
+        R().then(c).catch(P);
       };
-      window.grecaptcha.ready(C);
+      window.grecaptcha.ready(O);
     });
-  }, w = async (c) => {
+  }, w = async (c, P) => {
     xe.setTokens(c.accessToken, c.refreshToken);
-    const N = await Ne.getCurrentUser();
-    p("success"), t({ user: N, tokens: c });
+    const O = P ?? await Ne.getCurrentUser();
+    p("success"), t({ user: O, tokens: c });
   }, T = (c) => {
     try {
       p(`${c}-loading`), b(null);
-      const N = c === "google" ? ye.ENDPOINTS.GOOGLE_AUTH : ye.ENDPOINTS.MICROSOFT_AUTH;
+      const P = c === "google" ? ye.ENDPOINTS.GOOGLE_AUTH : ye.ENDPOINTS.MICROSOFT_AUTH;
       setTimeout(() => {
         Ne.initiateOAuth(
-          N,
+          P,
           g(),
           e.apiBaseUrl
         );
       }, 300);
-    } catch (N) {
-      const C = N;
-      b({ message: C.message, type: c }), p("error"), r(C);
+    } catch (P) {
+      const O = P;
+      b({ message: O.message, type: c }), p("error"), r(O);
     }
-  }, k = async () => {
+  }, N = async () => {
     p("passkey-loading"), b(null);
     try {
-      const c = await Ne.loginWithPasskey();
-      await w(c);
+      const { tokens: c, user: P } = await Ne.loginWithPasskey();
+      await w(c, P);
     } catch (c) {
-      const N = c;
-      b({ message: N.message, type: "passkey" }), p("error"), r(N);
+      const P = c;
+      b({ message: P.message, type: "passkey" }), p("error"), r(P);
     }
   }, j = () => {
     b(null), p("magic-link");
@@ -6566,9 +6573,9 @@ const Ll = Vr.object({
     p("magic-link-loading"), b(null);
     try {
       n && await x(), await Ne.requestMagicLink(c.email, g()), p("magic-link-success");
-    } catch (N) {
-      const C = N;
-      b({ message: C.message, type: "magic-link" }), p("magic-link"), r(C);
+    } catch (P) {
+      const O = P;
+      b({ message: O.message, type: "magic-link" }), p("magic-link"), r(O);
     }
   }, Z = () => {
     b(null), p("idle");
@@ -6636,7 +6643,7 @@ const Ll = Vr.object({
             loadingLabel: "Waiting for passkey...",
             isLoading: u === "passkey-loading",
             disabled: q,
-            onClick: k
+            onClick: N
           }
         ),
         s && /* @__PURE__ */ B(
