@@ -227,6 +227,7 @@ When enabled, a reCAPTCHA Enterprise token is requested before a magic link is s
 | `enableMicrosoftSignIn` | `boolean`                                                             | ❌       | `false` | Show "Continue with Microsoft"                      |
 | `enableMagicLinkSignIn` | `boolean`                                                             | ❌       | `false` | Show "Email me a sign-in link"                      |
 | `enablePasskeySignIn`   | `boolean`                                                             | ❌       | `false` | Show "Sign in with a passkey"                       |
+| `showErrors`            | `boolean`                                                             | ❌       | `true`  | Draw errors in the card; `false` when the host shows `onLoginError` itself |
 | `enableRecaptcha`       | `boolean`                                                             | ❌       | `false` | Verify reCAPTCHA before sending magic links         |
 | `recaptchaSiteKey`      | `string`                                                              | ❌       | -       | reCAPTCHA site key (required with reCAPTCHA)        |
 | `branding`              | `BrandingConfig`                                                      | ❌       | -       | Logo, colors and copy                               |
@@ -287,12 +288,13 @@ interface BrandingConfig {
 	secondaryColor?: string; // Secondary color for hover states
 	backgroundColor?: string; // Background color of the component
 	textColor?: string; // Text color throughout the component
+	buttonTextColor?: string; // Text on filled buttons, drawn in primaryColor (default: '#ffffff')
 	companyName?: string; // Company name displayed in header
 	tagline?: string; // Optional tagline below company name
 	magicLinkTitle?: string; // Magic link form title
 	magicLinkDescription?: string; // Magic link form description
 	magicLinkSuccessTitle?: string; // "Check your inbox" title
-	magicLinkSuccessDescription?: string; // "Check your inbox" description
+	magicLinkSuccessDescription?: string; // "Check your inbox" description (default does not promise an email: only active accounts get one)
 }
 ```
 
@@ -329,6 +331,10 @@ Open `http://localhost:3001`. The demo lets you toggle each sign-in method, adju
 ## Changelog
 
 ### Unreleased
+
+-   **FIXED**: A failed sign-in (unknown passkey, used magic link) no longer reloads the page: 401s from sign-in endpoints skip the refresh-and-redirect meant for expired sessions
+-   **NEW**: `showErrors={false}` hides the card's error alert and "Try Again" for hosts that show `onLoginError` themselves
+-   **NEW**: `branding.buttonTextColor` (default white) for text on filled buttons, which previously took the host theme's contrast colour
 
 -   **BREAKING**: Removed email/password sign-in (`enableLocalSignIn`, `LoginFormData`, `POST /auth/login`)
 -   **BREAKING**: Removed forget password (`enableForgetPassword` and the `forgetPassword*` branding fields)

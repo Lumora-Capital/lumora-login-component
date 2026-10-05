@@ -3,6 +3,20 @@ import { TokenStorage } from './tokenStorage';
 import { API_CONSTANTS, ERROR_MESSAGES } from './constants';
 import { LumoraAuthTokens } from '../types';
 
+// A 401 from these means the sign-in attempt failed (an unknown passkey, a used link), not that a
+// session expired: refreshing is pointless, and the redirect to /login reloaded the page under the
+// error message the person was reading.
+const SIGN_IN_ENDPOINTS: readonly string[] = [
+	API_CONSTANTS.ENDPOINTS.REFRESH,
+	API_CONSTANTS.ENDPOINTS.MAGIC_LINK_REQUEST,
+	API_CONSTANTS.ENDPOINTS.MAGIC_LINK_VERIFY,
+	API_CONSTANTS.ENDPOINTS.PASSKEY_LOGIN_OPTIONS,
+	API_CONSTANTS.ENDPOINTS.PASSKEY_LOGIN_VERIFY
+];
+
+const isSignInRequest = (url?: string): boolean =>
+	Boolean(url) && SIGN_IN_ENDPOINTS.some(endpoint => url!.split('?')[0].endsWith(endpoint));
+
 /**
  * Create a configured Axios instance for API communication
  * @param baseURL - The base URL for the API
@@ -42,7 +56,8 @@ export const createApiClient = (baseURL: string, apiKey?: string): AxiosInstance
 			// If 401 and we haven't retried yet
 			if (
 				error.response?.status === API_CONSTANTS.STATUS_CODES.UNAUTHORIZED &&
-				!originalRequest._retry
+				!originalRequest._retry &&
+				!isSignInRequest(originalRequest.url)
 			) {
 				originalRequest._retry = true;
 

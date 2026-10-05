@@ -134,6 +134,7 @@ const EmailRequestForm: React.FC<EmailRequestFormProps> = ({
 						sx={{
 							py: 1.5,
 							backgroundColor: brandConfig.primaryColor,
+							color: brandConfig.buttonTextColor,
 							borderRadius: 1.4,
 							textTransform: 'none',
 							fontWeight: 600,
@@ -144,7 +145,8 @@ const EmailRequestForm: React.FC<EmailRequestFormProps> = ({
 								boxShadow: `0 6px 16px ${brandConfig.primaryColor}40`
 							},
 							'&:disabled': {
-								backgroundColor: `${brandConfig.primaryColor}60`
+								backgroundColor: `${brandConfig.primaryColor}60`,
+								color: brandConfig.buttonTextColor
 							}
 						}}
 					>

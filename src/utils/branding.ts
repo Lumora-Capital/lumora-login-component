@@ -14,6 +14,9 @@ export const getDefaultBranding = (): BrandingConfig => ({
 	secondaryColor: '#42a5f5',
 	backgroundColor: '#ffffff',
 	textColor: '#333333',
+	// Text on filled buttons, which are drawn in primaryColor. Set, not left to the host theme's
+	// contrastText, which could be dark text on a dark brand colour.
+	buttonTextColor: '#ffffff',
 
 	// Logo configuration
 	logoHeight: 48,
@@ -24,8 +27,10 @@ export const getDefaultBranding = (): BrandingConfig => ({
 	magicLinkDescription:
 		'Enter your email address and we will send you a secure, one-time link to sign in. No password needed.',
 	magicLinkSuccessTitle: 'Check Your Inbox',
+	// Sent only to an active account, and the API answers the same either way so the form cannot
+	// reveal who has one: say so, rather than promising an email that may never come.
 	magicLinkSuccessDescription:
-		'We have sent you a sign-in link. Open it on this device to finish signing in. The link expires shortly and can only be used once.'
+		'If this email address belongs to an active account, we have sent it a sign-in link. The link works once and expires shortly. Nothing arrived? Check your spam folder, or contact your administrator.'
 });
 
 /**
