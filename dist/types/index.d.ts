@@ -5,6 +5,7 @@ export interface BrandingConfig {
     secondaryColor?: string;
     backgroundColor?: string;
     textColor?: string;
+    buttonTextColor?: string;
     companyName?: string;
     tagline?: string;
     magicLinkTitle?: string;
@@ -46,6 +47,7 @@ export interface LumoraLoginProps {
     enableMicrosoftSignIn?: boolean;
     enableMagicLinkSignIn?: boolean;
     enablePasskeySignIn?: boolean;
+    showErrors?: boolean;
     branding?: BrandingConfig;
 }
 export interface MagicLinkFormData {

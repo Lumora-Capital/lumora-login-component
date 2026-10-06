@@ -5,6 +5,7 @@ export interface BrandingConfig {
 	secondaryColor?: string;
 	backgroundColor?: string;
 	textColor?: string;
+	buttonTextColor?: string;
 	companyName?: string;
 	tagline?: string;
 	magicLinkTitle?: string;
@@ -54,6 +55,10 @@ export interface LumoraLoginProps {
 	enableMicrosoftSignIn?: boolean;
 	enableMagicLinkSignIn?: boolean;
 	enablePasskeySignIn?: boolean;
+
+	// false when the host shows onLoginError itself (e.g. a snackbar): the component then draws no
+	// error alert and no "Try Again", so the message is not shown twice
+	showErrors?: boolean;
 	
 	// Styling
 	branding?: BrandingConfig;

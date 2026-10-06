@@ -295,6 +295,29 @@ describe('LumoraLogin Component', () => {
 
 			expect(props.onLoginError).toHaveBeenCalled();
 		});
+
+		it('leaves the error to the host when showErrors is false', async () => {
+			const user = userEvent.setup();
+			jest.spyOn(authService, 'loginWithPasskey').mockRejectedValue(
+				new Error('Passkey request was cancelled or timed out')
+			);
+			const props = createMockProps({ enablePasskeySignIn: true, showErrors: false });
+			renderWithTheme(props);
+
+			await user.click(
+				screen.getByRole('button', { name: 'Sign in with a passkey' })
+			);
+
+			await waitFor(() => {
+				expect(props.onLoginError).toHaveBeenCalledWith(
+					expect.objectContaining({ message: 'Passkey request was cancelled or timed out' })
+				);
+			});
+			expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+			expect(screen.queryByRole('button', { name: 'Try Again' })).not.toBeInTheDocument();
+			// The sign-in options stay usable
+			expect(screen.getByRole('button', { name: 'Sign in with a passkey' })).toBeEnabled();
+		});
 	});
 
 	describe('Error Handling', () => {

@@ -60,7 +60,9 @@ const EmailSentSuccess: React.FC<EmailSentSuccessProps> = ({
 						color: brandConfig.textColor,
 						opacity: 0.8,
 						mb: 3,
-						lineHeight: 1.6
+						lineHeight: 1.6,
+						// A blank line in the description is a paragraph break
+						whiteSpace: 'pre-line'
 					}}
 				>
 					{description}
@@ -75,6 +77,7 @@ const EmailSentSuccess: React.FC<EmailSentSuccessProps> = ({
 						py: 1.5,
 						px: 4,
 						backgroundColor: brandConfig.primaryColor,
+						color: brandConfig.buttonTextColor,
 						borderRadius: 1.4,
 						textTransform: 'none',
 						fontWeight: 600,

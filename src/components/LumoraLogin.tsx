@@ -45,6 +45,7 @@ const LumoraLogin: React.FC<LumoraLoginProps> = ({
 	enableMicrosoftSignIn = false,
 	enableMagicLinkSignIn = false,
 	enablePasskeySignIn = false,
+	showErrors = true,
 	branding
 }) => {
 	// Component state management
@@ -236,7 +237,7 @@ const LumoraLogin: React.FC<LumoraLoginProps> = ({
 					title={brandConfig.magicLinkSuccessTitle || 'Check Your Email'}
 					description={
 						brandConfig.magicLinkSuccessDescription ||
-						'We have sent you a sign-in link. Open it on this device to finish signing in.'
+						'If this email address belongs to an active account, we have sent it a sign-in link.'
 					}
 					onBackToLogin={handleBackToSignIn}
 				/>
@@ -258,7 +259,7 @@ const LumoraLogin: React.FC<LumoraLoginProps> = ({
 					}
 					submitLabel="Send Sign-In Link"
 					isSubmitting={loginState === 'magic-link-loading'}
-					error={error}
+					error={showErrors ? error : null}
 					onSubmit={handleMagicLinkSubmit}
 					onBackToLogin={handleBackToSignIn}
 					onCloseError={() => setError(null)}
@@ -284,7 +285,7 @@ const LumoraLogin: React.FC<LumoraLoginProps> = ({
 				subtitle={brandConfig.tagline}
 			/>
 			<LoginContainer brandConfig={brandConfig}>
-				{error && (
+				{showErrors && error && (
 					<Alert
 						severity="error"
 						sx={{ mb: 3 }}
@@ -339,7 +340,7 @@ const LumoraLogin: React.FC<LumoraLoginProps> = ({
 						/>
 					)}
 
-					{loginState === 'error' && (
+					{showErrors && loginState === 'error' && (
 						<Button
 							fullWidth
 							variant="text"
