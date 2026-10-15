@@ -1,4 +1,6 @@
 export { default as LumoraLogin } from './components/LumoraLogin';
+export { default as LumoraLoginSkeleton } from './components/LumoraLoginSkeleton';
+export type { LumoraLoginSkeletonProps } from './components/LumoraLoginSkeleton';
 export { getDefaultBranding, getBrandingConfig } from './utils/branding';
 export { useAuthCallback } from './hooks/useAuthCallback';
 export { useLogout } from './hooks/useLogout';

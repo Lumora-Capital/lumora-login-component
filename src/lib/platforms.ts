@@ -149,7 +149,7 @@ export const getPlatform = (id: PlatformId): PlatformConfig =>
 	PLATFORMS.find(platform => platform.id === id)!;
 
 // Storage key for the platform the user chose to start in
-const PLATFORM_STORAGE_KEY = 'lumora_platform';
+export const PLATFORM_STORAGE_KEY = 'lumora_platform';
 
 /**
  * Remembers the chosen platform across the OAuth / magic link redirect,

@@ -1,7 +1,7 @@
 import { ColorMode } from '../types';
 
 // Storage key for the colour mode the user picked with the toggle
-const COLOR_MODE_STORAGE_KEY = 'lumora_color_mode';
+export const COLOR_MODE_STORAGE_KEY = 'lumora_color_mode';
 
 // Media query that matches when the operating system is set to dark mode
 export const SYSTEM_DARK_QUERY = '(prefers-color-scheme: dark)';

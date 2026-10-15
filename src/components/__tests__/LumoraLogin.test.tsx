@@ -478,6 +478,19 @@ describe('LumoraLogin Component', () => {
 			delete (window as unknown as { matchMedia?: unknown }).matchMedia;
 		});
 
+		it('should switch colours at once, with no colour fade, when the mode flips', async () => {
+			const user = userEvent.setup();
+			const { container } = renderWithTheme(createMockProps({ defaultColorMode: 'light' }));
+			const page = () => container.querySelector('[data-mode-switching]');
+			expect(page()).toBeNull();
+
+			await user.click(screen.getByRole('button', { name: 'Switch to dark mode' }));
+
+			// Marked in the same render as the new colours, which turns their transitions off
+			expect(page()).not.toBeNull();
+			await waitFor(() => expect(page()).toBeNull());
+		});
+
 		it('should follow the system setting for first-time visitors', () => {
 			mockSystemColorMode('dark');
 			renderWithTheme(createMockProps());

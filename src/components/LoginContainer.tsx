@@ -1,8 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Box } from '@mui/material';
 import { ThemeProvider, createTheme, useTheme } from '@mui/material/styles';
 import { LoginTheme, SHORT_SCREEN } from '../utils/loginTheme';
 import {
+	MODE_SWITCH_TRANSITION,
 	REDUCED_MOTION_SX,
 	THEME_TRANSITION,
 	fadeUpAnimation
@@ -76,11 +77,29 @@ const LoginContainer: React.FC<LoginContainerProps> = ({
 		[hostTheme]
 	);
 
+	// Marked in the same render as the new colours, so they apply with no colour transition
+	// (toggle or system setting). Cleared two frames later, once the browser has painted them:
+	// a click before then keeps it marked, so rapid toggling never fades.
+	const [shownMode, setShownMode] = useState(theme.mode);
+	const [isSwitchingMode, setIsSwitchingMode] = useState(false);
+	if (theme.mode !== shownMode) {
+		setShownMode(theme.mode);
+		setIsSwitchingMode(true);
+	}
+	useEffect(() => {
+		if (!isSwitchingMode) return;
+		let frame = requestAnimationFrame(() => {
+			frame = requestAnimationFrame(() => setIsSwitchingMode(false));
+		});
+		return () => cancelAnimationFrame(frame);
+	}, [isSwitchingMode, shownMode]);
+
 	return (
 		// Own spacing unit, so the layout looks the same in every host app.
 		// Full-width page background; the layout inside is capped and centred on wide screens
 		<ThemeProvider theme={lumoraTheme}>
 			<Box
+				data-mode-switching={isSwitchingMode || undefined}
 				sx={{
 					minHeight: '100vh',
 					backgroundColor: theme.pageBg,
@@ -88,6 +107,10 @@ const LoginContainer: React.FC<LoginContainerProps> = ({
 					// Desktop: centres the capped layout vertically on very tall screens
 					display: { md: 'flex' },
 					alignItems: 'center',
+					// Light / dark switch: colours change at once on every element, MUI's own
+					// transitions included (see MODE_SWITCH_TRANSITION)
+					'&[data-mode-switching], &[data-mode-switching] *, &[data-mode-switching] *::before, &[data-mode-switching] *::after':
+						{ transition: `${MODE_SWITCH_TRANSITION} !important` },
 					...REDUCED_MOTION_SX
 				}}
 			>

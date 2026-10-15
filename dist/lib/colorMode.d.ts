@@ -1,4 +1,5 @@
 import { ColorMode } from '../types';
+export declare const COLOR_MODE_STORAGE_KEY = "lumora_color_mode";
 export declare const SYSTEM_DARK_QUERY = "(prefers-color-scheme: dark)";
 /**
  * Read the operating system's colour mode

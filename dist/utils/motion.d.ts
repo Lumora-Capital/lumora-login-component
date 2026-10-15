@@ -9,6 +9,7 @@ export declare const COLOR_EASE = "cubic-bezier(0.4, 0, 0.2, 1)";
 export declare const colorTransition: (...properties: string[]) => string;
 export declare const THEME_TRANSITION: string;
 export declare const SVG_TRANSITION: string;
+export declare const MODE_SWITCH_TRANSITION: string;
 export declare const fadeUp: {
     name: string;
     styles: string;

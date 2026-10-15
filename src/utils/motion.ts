@@ -27,6 +27,12 @@ export const THEME_TRANSITION = colorTransition(
 // Logo shapes recolour through CSS variables, which do not animate; their fill and stroke do
 export const SVG_TRANSITION = colorTransition('fill', 'stroke');
 
+// Light / dark switch: colours change in one frame. A light and a dark palette are inverses, so
+// any fade between them passes a moment where text and background are the same colour, and
+// clicking the toggle mid-fade strands them there. Only motion that keeps text legible (the
+// toggle's sun and moon turning) still animates.
+export const MODE_SWITCH_TRANSITION = colorTransition('opacity', 'transform');
+
 
 // Text and cards rising into place
 export const fadeUp = keyframes`

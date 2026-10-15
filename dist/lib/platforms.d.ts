@@ -36,6 +36,7 @@ export declare const DEFAULT_PLATFORM: PlatformId;
  * @returns The platform configuration
  */
 export declare const getPlatform: (id: PlatformId) => PlatformConfig;
+export declare const PLATFORM_STORAGE_KEY = "lumora_platform";
 /**
  * Remembers the chosen platform across the OAuth / magic link redirect,
  * so the callback page knows where to send the user

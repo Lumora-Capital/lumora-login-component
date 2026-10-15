@@ -1,5 +1,7 @@
 // Export the main component
 export { default as LumoraLogin } from './components/LumoraLogin';
+export { default as LumoraLoginSkeleton } from './components/LumoraLoginSkeleton';
+export type { LumoraLoginSkeletonProps } from './components/LumoraLoginSkeleton';
 
 // Export branding utilities
 export { getDefaultBranding, getBrandingConfig } from './utils/branding';

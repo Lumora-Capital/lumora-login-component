@@ -49,7 +49,7 @@ export const useColorMode = (
 	const toggleColorMode = () => {
 		const nextMode: ColorMode = colorMode === 'dark' ? 'light' : 'dark';
 		// No view transition here: its page snapshots made the dashboard images blink on
-		// GPU-rendered Chrome. Every element fades on its own CSS colour transition instead.
+		// GPU-rendered Chrome. LoginContainer switches the colours in one frame (MODE_SWITCH_TRANSITION).
 		setColorMode(nextMode);
 		setHasChosen(true);
 

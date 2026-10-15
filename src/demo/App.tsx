@@ -19,6 +19,7 @@ import {
 import { TuneOutlined as TuneIcon } from '@mui/icons-material';
 import {
 	LumoraLogin,
+	LumoraLoginSkeleton,
 	BrandingConfig,
 	LumoraAuthConfig,
 	TokenStorage,
@@ -32,6 +33,8 @@ const demoParams = new URLSearchParams(window.location.search);
 const demoPlatform = demoParams.get('platform') as PlatformId | null;
 // Without ?mode the demo behaves like production: saved choice, else the system setting
 const demoColorMode = (demoParams.get('mode') as ColorMode | null) ?? undefined;
+// ?skeleton=1 shows the loading skeleton instead of the form
+const demoSkeleton = demoParams.has('skeleton');
 
 // Create Material-UI theme for the demo
 const theme = createTheme({
@@ -48,6 +51,18 @@ const App: React.FC = () => {
 		window.location.pathname === '/callback';
 
 	// If on callback route, show the callback page
+	if (demoSkeleton) {
+		return (
+			<ThemeProvider theme={theme}>
+				<CssBaseline />
+				<LumoraLoginSkeleton
+					defaultPlatform={demoPlatform ?? undefined}
+					defaultColorMode={demoColorMode}
+				/>
+			</ThemeProvider>
+		);
+	}
+
 	if (isCallbackRoute) {
 		return (
 			<ThemeProvider theme={theme}>
