@@ -13,12 +13,12 @@ interface PlatformLogoProps extends SvgIconProps {
 const primary = (brand: string) => `var(--mark-primary, ${brand})`;
 // Centra's second, grey tone
 const SECONDARY = 'var(--mark-secondary, #3D4C5E)';
-// Xpdite's centre node: its fill, and the ring around it that separates it from the lines
+// XPdite's centre node: its fill, and the ring around it that separates it from the lines
 const centerFill = (brand: string) => `var(--mark-center, ${brand})`;
 const CENTER_RING = 'var(--mark-ring, #ffffff)';
 
 /**
- * Centra, Xpdite and Polymer marks, inlined from public/*-logo.svg
+ * Centra, XPdite and Polymer marks, inlined from public/*-logo.svg
  * so apps using the library need no asset files
  */
 const PlatformLogo: React.FC<PlatformLogoProps> = ({
@@ -71,7 +71,7 @@ const PlatformLogo: React.FC<PlatformLogoProps> = ({
 		);
 	}
 
-	// Xpdite: crossed lines with a node at each end and a ring at the top-right
+	// XPdite: crossed lines with a node at each end and a ring at the top-right
 	if (platform === 'xpdite') {
 		const fill = { fill: primary('#0F62B0') };
 		return (

@@ -83,7 +83,7 @@ export const PLATFORMS: PlatformConfig[] = [
 	},
 	{
 		id: 'xpdite',
-		name: 'Xpdite',
+		name: 'XPdite',
 		area: 'Data training',
 		headline: 'Creating value',
 		headlineAccent: 'through insight',

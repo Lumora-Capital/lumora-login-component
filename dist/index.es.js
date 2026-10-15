@@ -344,7 +344,7 @@ const Gs = () => ({
   welcomeTitleAccent: "Lumora.",
   welcomeTitleColor: "#072d29",
   welcomeTitleAccentColor: "#049586",
-  tagline: "One Lumora account for Centra, Xpdite and Polymer.",
+  tagline: "One Lumora account for Centra, XPdite and Polymer.",
   // Visual styling (light mode; dark mode keeps primaryColor and draws its own neutrals)
   primaryColor: "#4a9d8a",
   secondaryColor: "#3d8676",
@@ -418,7 +418,7 @@ const Gs = () => ({
   },
   {
     id: "xpdite",
-    name: "Xpdite",
+    name: "XPdite",
     area: "Data training",
     headline: "Creating value",
     headlineAccent: "through insight",
@@ -8291,9 +8291,9 @@ const lf = Fn({ spacing: 8 }).spacing, uf = 1760, df = 1120, Jo = ({
                       fontSize: 14,
                       fontWeight: 600,
                       color: d,
-                      // Logo colours: brand on the card, white on the selected tab
+                      // Logo colours: brand on the card (Centra's arcs white in dark mode), white on the selected tab
                       "--mark-primary": d,
-                      "--mark-secondary": i ? e.muted : "#3D4C5E",
+                      "--mark-secondary": i ? "#ffffff" : "#3D4C5E",
                       "--mark-center": d,
                       "--mark-ring": e.surface,
                       // Hover tint stays quick; the text colour follows the highlight
@@ -8306,10 +8306,10 @@ const lf = Fn({ spacing: 8 }).spacing, uf = 1760, df = 1120, Jo = ({
                       "&.Mui-selected, &.Mui-selected:hover": {
                         backgroundColor: "transparent",
                         color: "#ffffff",
-                        // Selected marks: white, with Centra's arcs kept slate and
-                        // Xpdite's centre node a white ring around the tab colour
+                        // Selected marks: all white, with XPdite's centre node
+                        // a white ring around the tab colour
                         "--mark-primary": "#ffffff",
-                        "--mark-secondary": "#3D4C5E",
+                        "--mark-secondary": "#ffffff",
                         "--mark-center": u.uiColor,
                         "--mark-ring": "#ffffff"
                       },
@@ -8639,7 +8639,7 @@ const lf = Fn({ spacing: 8 }).spacing, uf = 1760, df = 1120, Jo = ({
                   sx: {
                     ...ei,
                     // Laptops: wraps every platform's headline the way Polymer's does ("Build agents.
-                    // Govern every" 13.3em fits; Centra 14.3em and Xpdite 15.2em break onto a second line).
+                    // Govern every" 13.3em fits; Centra 14.3em and XPdite 15.2em break onto a second line).
                     // Wide screens (xl): no limit, so a headline stays on one line wherever it fits.
                     // In em, so the limit scales with the font.
                     maxWidth: { xs: "13.8em", xl: "none" },
@@ -8813,9 +8813,9 @@ const lf = Fn({ spacing: 8 }).spacing, uf = 1760, df = 1120, Jo = ({
                         borderRadius: 999,
                         backgroundColor: c.uiColor,
                         color: "#ffffff",
-                        // Logos as on a selected tab: white, Centra's arcs slate
+                        // Logos as on a selected tab: all white
                         "--mark-primary": "#ffffff",
-                        "--mark-secondary": "#3D4C5E",
+                        "--mark-secondary": "#ffffff",
                         "--mark-center": c.uiColor,
                         "--mark-ring": "#ffffff",
                         // App names are set in the heading font (Montserrat)
@@ -8882,7 +8882,7 @@ const lf = Fn({ spacing: 8 }).spacing, uf = 1760, df = 1120, Jo = ({
                     maxWidth: 540,
                     animation: Ke(180)
                   },
-                  children: "Centra runs the deals. Polymer builds the agents. Xpdite trains them. One Lumora account opens all three."
+                  children: "Centra runs the deals. Polymer builds the agents. XPdite trains them. One Lumora account opens all three."
                 }
               )
             ]

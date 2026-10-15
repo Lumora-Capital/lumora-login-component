@@ -376,15 +376,15 @@ describe('LumoraLogin Component', () => {
 			);
 			expect(localStorage.getItem('lumora_platform')).toBe('centra');
 
-			await user.click(screen.getByRole('button', { name: 'Xpdite' }));
+			await user.click(screen.getByRole('button', { name: 'XPdite' }));
 
 			expect(onPlatformChange).toHaveBeenCalledWith('xpdite');
-			expect(screen.getByRole('button', { name: 'Xpdite' })).toHaveAttribute(
+			expect(screen.getByRole('button', { name: 'XPdite' })).toHaveAttribute(
 				'aria-pressed',
 				'true'
 			);
 			expect(
-				screen.getAllByRole('complementary', { name: 'Xpdite overview' })
+				screen.getAllByRole('complementary', { name: 'XPdite overview' })
 			).toHaveLength(2);
 			expect(
 				screen.getAllByRole('heading', { name: 'Creating value through insight' })

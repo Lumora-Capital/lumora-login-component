@@ -5,7 +5,7 @@ interface PlatformLogoProps extends SvgIconProps {
     platform: PlatformId;
 }
 /**
- * Centra, Xpdite and Polymer marks, inlined from public/*-logo.svg
+ * Centra, XPdite and Polymer marks, inlined from public/*-logo.svg
  * so apps using the library need no asset files
  */
 declare const PlatformLogo: React.FC<PlatformLogoProps>;

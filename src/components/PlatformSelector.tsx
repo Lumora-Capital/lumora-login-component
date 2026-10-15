@@ -124,9 +124,9 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
 								fontSize: 14,
 								fontWeight: 600,
 								color,
-								// Logo colours: brand on the card, white on the selected tab
+								// Logo colours: brand on the card (Centra's arcs white in dark mode), white on the selected tab
 								'--mark-primary': color,
-								'--mark-secondary': isDark ? theme.muted : '#3D4C5E',
+								'--mark-secondary': isDark ? '#ffffff' : '#3D4C5E',
 								'--mark-center': color,
 								'--mark-ring': theme.surface,
 								// Hover tint stays quick; the text colour follows the highlight
@@ -139,10 +139,10 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
 								'&.Mui-selected, &.Mui-selected:hover': {
 									backgroundColor: 'transparent',
 									color: '#ffffff',
-									// Selected marks: white, with Centra's arcs kept slate and
-									// Xpdite's centre node a white ring around the tab colour
+									// Selected marks: all white, with XPdite's centre node
+									// a white ring around the tab colour
 									'--mark-primary': '#ffffff',
-									'--mark-secondary': '#3D4C5E',
+									'--mark-secondary': '#ffffff',
 									'--mark-center': platform.uiColor,
 									'--mark-ring': '#ffffff'
 								},

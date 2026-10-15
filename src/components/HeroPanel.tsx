@@ -223,7 +223,7 @@ const HeroPanel: React.FC<HeroPanelProps> = ({
 							sx={{
 								...HEADLINE_SX,
 								// Laptops: wraps every platform's headline the way Polymer's does ("Build agents.
-								// Govern every" 13.3em fits; Centra 14.3em and Xpdite 15.2em break onto a second line).
+								// Govern every" 13.3em fits; Centra 14.3em and XPdite 15.2em break onto a second line).
 								// Wide screens (xl): no limit, so a headline stays on one line wherever it fits.
 								// In em, so the limit scales with the font.
 								maxWidth: { xs: '13.8em', xl: 'none' },
@@ -378,9 +378,9 @@ const HeroPanel: React.FC<HeroPanelProps> = ({
 											borderRadius: 999,
 											backgroundColor: item.uiColor,
 											color: '#ffffff',
-											// Logos as on a selected tab: white, Centra's arcs slate
+											// Logos as on a selected tab: all white
 											'--mark-primary': '#ffffff',
-											'--mark-secondary': '#3D4C5E',
+											'--mark-secondary': '#ffffff',
 											'--mark-center': item.uiColor,
 											'--mark-ring': '#ffffff',
 											// App names are set in the heading font (Montserrat)
@@ -442,7 +442,7 @@ const HeroPanel: React.FC<HeroPanelProps> = ({
 								}}
 							>
 								Centra runs the deals. Polymer builds the
-								agents. Xpdite trains them. One Lumora account
+								agents. XPdite trains them. One Lumora account
 								opens all three.
 							</Box>
 						)}

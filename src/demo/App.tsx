@@ -97,7 +97,7 @@ const App: React.FC = () => {
 	// State for branding configuration
 	const [branding, setBranding] = useState<BrandingConfig>({
 		companyName: 'Lumora Capital',
-		tagline: 'One Lumora account for Centra, Xpdite and Polymer.'
+		tagline: 'One Lumora account for Centra, XPdite and Polymer.'
 	});
 
 	// Demo settings drawer
@@ -487,7 +487,7 @@ const App: React.FC = () => {
 										setBranding({
 											companyName: 'Lumora Capital',
 											tagline:
-												'One Lumora account for Centra, Xpdite and Polymer.'
+												'One Lumora account for Centra, XPdite and Polymer.'
 										});
 									}}
 								>

@@ -12,7 +12,7 @@ export const getDefaultBranding = (): BrandingConfig => ({
 	welcomeTitleAccent: 'Lumora.',
 	welcomeTitleColor: '#072d29',
 	welcomeTitleAccentColor: '#049586',
-	tagline: 'One Lumora account for Centra, Xpdite and Polymer.',
+	tagline: 'One Lumora account for Centra, XPdite and Polymer.',
 
 	// Visual styling (light mode; dark mode keeps primaryColor and draws its own neutrals)
 	primaryColor: '#4a9d8a',
