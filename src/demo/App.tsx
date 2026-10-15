@@ -33,6 +33,8 @@ const demoParams = new URLSearchParams(window.location.search);
 const demoPlatform = demoParams.get('platform') as PlatformId | null;
 // Without ?mode the demo behaves like production: saved choice, else the system setting
 const demoColorMode = (demoParams.get('mode') as ColorMode | null) ?? undefined;
+// ?overview=1 opens on the ecosystem overview (showOverview)
+const demoOverview = demoParams.has('overview');
 // ?skeleton=1 shows the loading skeleton instead of the form
 const demoSkeleton = demoParams.has('skeleton');
 
@@ -77,6 +79,7 @@ const App: React.FC = () => {
 	const [enableMicrosoftSignIn, setEnableMicrosoftSignIn] = useState(true);
 	const [enableMagicLinkSignIn, setEnableMagicLinkSignIn] = useState(true);
 	const [enablePasskeySignIn, setEnablePasskeySignIn] = useState(true);
+	const [showOverview, setShowOverview] = useState(demoOverview);
 
 	// Auto-detect configuration from environment variables
 	const apiBaseUrl =
@@ -168,17 +171,21 @@ const App: React.FC = () => {
 				enableMagicLinkSignIn={enableMagicLinkSignIn}
 				enablePasskeySignIn={enablePasskeySignIn}
 				defaultPlatform={demoPlatform ?? undefined}
+				showOverview={showOverview}
 				defaultColorMode={demoColorMode}
 				// Overview art served from public/platform-dashboards; the platform dashboards are built in
 				platformAssets={{
 					centra: {
-						overviewScreenshot: '/platform-dashboards/uncut/centra-uncut.svg'
+						overviewScreenshot: '/platform-dashboards/uncut/centra-uncut.svg',
+						overviewScreenshotDark: '/platform-dashboards/uncut/centra-uncut-dark.svg'
 					},
 					xpdite: {
-						overviewScreenshot: '/platform-dashboards/uncut/xpdite-uncut.svg'
+						overviewScreenshot: '/platform-dashboards/uncut/xpdite-uncut.svg',
+						overviewScreenshotDark: '/platform-dashboards/uncut/xpdite-uncut-dark.svg'
 					},
 					polymer: {
-						overviewScreenshot: '/platform-dashboards/uncut/polymer-uncut.svg'
+						overviewScreenshot: '/platform-dashboards/uncut/polymer-uncut.svg',
+						overviewScreenshotDark: '/platform-dashboards/uncut/polymer-uncut-dark.svg'
 					}
 				}}
 				onPlatformChange={platform =>
@@ -401,6 +408,20 @@ const App: React.FC = () => {
 									}
 									label="Enable Passkey Sign In"
 								/>
+
+								<FormControlLabel
+									control={
+										<Switch
+											checked={showOverview}
+											onChange={e =>
+												setShowOverview(
+													e.target.checked
+												)
+											}
+										/>
+									}
+									label="Show Overview (no platform selected)"
+								/>
 							</Box>
 						</Paper>
 
@@ -536,6 +557,7 @@ const App: React.FC = () => {
   enableMicrosoftSignIn={true}
   enableMagicLinkSignIn={true}
   enablePasskeySignIn={true}
+  showOverview={${showOverview}}
 />`}
 								</Box>
 							</CardContent>

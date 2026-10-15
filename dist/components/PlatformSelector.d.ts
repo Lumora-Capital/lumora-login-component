@@ -6,10 +6,12 @@ interface PlatformSelectorProps {
     value: PlatformId | null;
     platformAssets?: Partial<Record<PlatformId, PlatformAssets>>;
     disabled?: boolean;
-    onChange: (platform: PlatformId) => void;
+    allowClear?: boolean;
+    onChange: (platform: PlatformId | null) => void;
 }
 /**
- * "Where would you like to start?" segmented control. One platform is always selected.
+ * "Where would you like to start?" segmented control. One platform stays selected unless
+ * allowClear lets the user clear it.
  */
 declare const PlatformSelector: React.FC<PlatformSelectorProps>;
 export default PlatformSelector;

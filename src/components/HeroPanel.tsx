@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Box } from '@mui/material';
-import { PlatformAssets, PlatformId } from '../types';
+import { ColorMode, PlatformAssets, PlatformId } from '../types';
 import { PLATFORMS, getPlatform } from '../lib/platforms';
 import { LoginTheme, gridBackground } from '../utils/loginTheme';
 import {
@@ -47,18 +47,39 @@ const EYEBROW_SX = {
 	textTransform: 'uppercase'
 } as const;
 
-// Built-in dashboards already fetched, kept for the page's lifetime so each loads once
-const loadedScreenshots: Partial<Record<PlatformId, string>> = {};
+// Built-in dashboards already fetched, per colour mode, kept for the page's lifetime so each
+// loads once
+const loadedScreenshots: Record<ColorMode, Partial<Record<PlatformId, string>>> = {
+	light: {},
+	dark: {}
+};
 
 /**
- * Screenshots for the given platforms: the host's asset, else the built-in dashboard,
- * fetched on first use. A platform maps to undefined (placeholder) while it loads.
+ * The host's art for a colour mode: its dark version in dark mode when it has one
+ * @param assets - Host-supplied assets of one platform
+ * @param mode - Light or dark
+ * @param key - Which art: the platform screenshot or the overview window
+ * @returns The art URL, or undefined when the host supplied none
+ */
+const hostArt = (
+	assets: PlatformAssets | undefined,
+	mode: ColorMode,
+	key: 'screenshot' | 'overviewScreenshot'
+): string | undefined =>
+	(mode === 'dark' ? assets?.[`${key}Dark`] : undefined) ?? assets?.[key];
+
+/**
+ * Screenshots for the given platforms in the colour mode: the host's asset, else the built-in
+ * dashboard, fetched on first use. While a mode's dashboard loads, the other mode's is shown if
+ * it is loaded (so toggling the mode does not flash the placeholder), else undefined (placeholder).
  * @param ids - Platforms whose screenshots are shown
+ * @param mode - Light or dark
  * @param platformAssets - Host-supplied assets
  * @returns Screenshot URL per platform
  */
 const useScreenshots = (
 	ids: PlatformId[],
+	mode: ColorMode,
 	platformAssets?: Partial<Record<PlatformId, PlatformAssets>>
 ): Partial<Record<PlatformId, string>> => {
 	// Bumped when a built-in dashboard arrives, to redraw with it
@@ -68,13 +89,16 @@ const useScreenshots = (
 	useEffect(() => {
 		let cancelled = false;
 		ids.forEach(id => {
-			if (platformAssets?.[id]?.screenshot || loadedScreenshots[id]) {
+			if (
+				hostArt(platformAssets?.[id], mode, 'screenshot') ||
+				loadedScreenshots[mode][id]
+			) {
 				return;
 			}
 			getPlatform(id)
-				.loadScreenshot()
+				.loadScreenshot(mode)
 				.then(url => {
-					loadedScreenshots[id] = url;
+					loadedScreenshots[mode][id] = url;
 					if (!cancelled) {
 						setLoadCount(count => count + 1);
 					}
@@ -86,12 +110,15 @@ const useScreenshots = (
 			cancelled = true;
 		};
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [idsKey, platformAssets]);
+	}, [idsKey, mode, platformAssets]);
 
+	const otherMode: ColorMode = mode === 'dark' ? 'light' : 'dark';
 	return Object.fromEntries(
 		ids.map(id => [
 			id,
-			platformAssets?.[id]?.screenshot ?? loadedScreenshots[id]
+			hostArt(platformAssets?.[id], mode, 'screenshot') ??
+				loadedScreenshots[mode][id] ??
+				loadedScreenshots[otherMode][id]
 		])
 	);
 };
@@ -134,6 +161,7 @@ const HeroPanel: React.FC<HeroPanelProps> = ({
 	// The platform hero shows one dashboard, the overview stacks all three
 	const screenshots = useScreenshots(
 		selected ? [selected.id] : PLATFORMS.map(item => item.id),
+		theme.mode,
 		platformAssets
 	);
 
@@ -488,10 +516,11 @@ const HeroPanel: React.FC<HeroPanelProps> = ({
 									<Box
 										key={id}
 										component="img"
-										src={
-											platformAssets?.[id]
-												?.overviewScreenshot
-										}
+										src={hostArt(
+											platformAssets?.[id],
+											theme.mode,
+											'overviewScreenshot'
+										)}
 										alt={`${getPlatform(id).name} dashboard`}
 										sx={{
 											position: 'absolute',

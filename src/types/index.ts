@@ -37,8 +37,12 @@ export interface PlatformAssets {
 	logo?: React.ReactNode;
 	// Dashboard shown when this platform is selected (cropped to the hero)
 	screenshot?: string;
+	// Dashboard for dark mode; without one, dark mode also shows `screenshot`
+	screenshotDark?: string;
 	// Whole window for the overview stack, with its shadow built in; used when all three have one
 	overviewScreenshot?: string;
+	// Overview window for dark mode; without one, dark mode also shows `overviewScreenshot`
+	overviewScreenshotDark?: string;
 }
 
 export interface LumoraAuthConfig {
@@ -94,6 +98,10 @@ export interface LumoraLoginProps {
 	// Platform selection ("Where would you like to start?")
 	// Platform selected on load; without one, the user's last choice, else Centra
 	defaultPlatform?: PlatformId;
+	// Open on the ecosystem overview with no platform selected (defaultPlatform and the last
+	// choice are then ignored). Clicking the selected platform returns to it. A sign-in made
+	// there lands in Centra.
+	showOverview?: boolean;
 	onPlatformChange?: (platform: PlatformId) => void;
 	platformAssets?: Partial<Record<PlatformId, PlatformAssets>>;
 

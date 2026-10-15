@@ -30,7 +30,9 @@ export type ColorMode = 'light' | 'dark';
 export interface PlatformAssets {
     logo?: React.ReactNode;
     screenshot?: string;
+    screenshotDark?: string;
     overviewScreenshot?: string;
+    overviewScreenshotDark?: string;
 }
 export interface LumoraAuthConfig {
     apiBaseUrl: string;
@@ -69,6 +71,7 @@ export interface LumoraLoginProps {
     enablePasskeySignIn?: boolean;
     showErrors?: boolean;
     defaultPlatform?: PlatformId;
+    showOverview?: boolean;
     onPlatformChange?: (platform: PlatformId) => void;
     platformAssets?: Partial<Record<PlatformId, PlatformAssets>>;
     defaultColorMode?: ColorMode;

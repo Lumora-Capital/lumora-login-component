@@ -405,6 +405,56 @@ describe('LumoraLogin Component', () => {
 			);
 		});
 
+		it('should open on the overview with showOverview, and return to it on a second click', async () => {
+			const user = userEvent.setup();
+			localStorage.setItem('lumora_platform', 'polymer');
+			renderWithTheme(createMockProps({ showOverview: true }));
+
+			// No platform selected, the last choice ignored, sign-ins land in Centra
+			const overviewHero = () =>
+				screen.queryAllByRole('complementary', { name: 'Lumora platforms overview' });
+			expect(overviewHero()).toHaveLength(2);
+			['Centra', 'XPdite', 'Polymer'].forEach(name =>
+				expect(screen.getByRole('button', { name })).toHaveAttribute(
+					'aria-pressed',
+					'false'
+				)
+			);
+			expect(localStorage.getItem('lumora_platform')).toBe('centra');
+
+			await user.click(screen.getByRole('button', { name: 'XPdite' }));
+			expect(overviewHero()).toHaveLength(0);
+			expect(localStorage.getItem('lumora_platform')).toBe('xpdite');
+
+			await user.click(screen.getByRole('button', { name: 'XPdite' }));
+			expect(overviewHero()).toHaveLength(2);
+		});
+
+		it('should follow showOverview when the host changes it', () => {
+			const props = createMockProps({ defaultPlatform: 'polymer' });
+			const { rerender } = renderWithTheme(props);
+			const overviewHero = () =>
+				screen.queryAllByRole('complementary', { name: 'Lumora platforms overview' });
+			expect(overviewHero()).toHaveLength(0);
+
+			rerender(
+				<ThemeProvider theme={testTheme}>
+					<LumoraLogin {...props} showOverview />
+				</ThemeProvider>
+			);
+			expect(overviewHero()).toHaveLength(2);
+
+			rerender(
+				<ThemeProvider theme={testTheme}>
+					<LumoraLogin {...props} showOverview={false} />
+				</ThemeProvider>
+			);
+			expect(screen.getByRole('button', { name: 'Polymer' })).toHaveAttribute(
+				'aria-pressed',
+				'true'
+			);
+		});
+
 		it("should start on the user's last platform over Centra", () => {
 			localStorage.setItem('lumora_platform', 'polymer');
 			renderWithTheme(createMockProps());
@@ -452,6 +502,30 @@ describe('LumoraLogin Component', () => {
 				expect(image).toHaveAttribute('src', 'https://example.com/centra.png')
 			);
 			expect(screen.queryByTestId('screenshot-placeholder')).not.toBeInTheDocument();
+		});
+
+		it('should swap to the dark screenshot when switched to dark mode', async () => {
+			const user = userEvent.setup();
+			renderWithTheme(
+				createMockProps({
+					defaultPlatform: 'centra',
+					defaultColorMode: 'light',
+					platformAssets: {
+						centra: {
+							screenshot: 'https://example.com/centra.png',
+							screenshotDark: 'https://example.com/centra-dark.png'
+						}
+					}
+				})
+			);
+
+			await user.click(screen.getByRole('button', { name: 'Switch to dark mode' }));
+
+			screen
+				.getAllByAltText('Centra dashboard')
+				.forEach(image =>
+					expect(image).toHaveAttribute('src', 'https://example.com/centra-dark.png')
+				);
 		});
 	});
 

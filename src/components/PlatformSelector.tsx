@@ -16,17 +16,21 @@ interface PlatformSelectorProps {
 	value: PlatformId | null;
 	platformAssets?: Partial<Record<PlatformId, PlatformAssets>>;
 	disabled?: boolean;
-	onChange: (platform: PlatformId) => void;
+	// Clicking the selected platform clears it (null), back to the overview
+	allowClear?: boolean;
+	onChange: (platform: PlatformId | null) => void;
 }
 
 /**
- * "Where would you like to start?" segmented control. One platform is always selected.
+ * "Where would you like to start?" segmented control. One platform stays selected unless
+ * allowClear lets the user clear it.
  */
 const PlatformSelector: React.FC<PlatformSelectorProps> = ({
 	theme,
 	value,
 	platformAssets,
 	disabled = false,
+	allowClear = false,
 	onChange
 }) => {
 	const isDark = theme.mode === 'dark';
@@ -93,8 +97,11 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
 				value={value}
 				disabled={disabled}
 				aria-labelledby="lumora-platform-label"
-				// Clicking the selected platform reports null: ignore it, so a platform stays chosen
-				onChange={(_, platform: PlatformId | null) => platform && onChange(platform)}
+				// Clicking the selected platform reports null: ignored unless clearing is allowed, so a
+				// platform stays chosen
+				onChange={(_, platform: PlatformId | null) =>
+					(platform || allowClear) && onChange(platform)
+				}
 				sx={{ position: 'relative', gap: 0.5 }}
 			>
 				{PLATFORMS.map(platform => {

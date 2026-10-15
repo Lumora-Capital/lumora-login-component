@@ -1,4 +1,4 @@
-import { PlatformId } from '../types';
+import { ColorMode, PlatformId } from '../types';
 export interface DarkPalette {
     pageBg: string;
     surface: string;
@@ -21,7 +21,7 @@ export interface PlatformConfig {
     frameColor: string;
     accent: string;
     dark: DarkPalette;
-    loadScreenshot: () => Promise<string>;
+    loadScreenshot: (mode: ColorMode) => Promise<string>;
 }
 export declare const LUMORA_DARK_PALETTE: DarkPalette;
 /**

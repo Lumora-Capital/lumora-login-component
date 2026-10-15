@@ -52,6 +52,7 @@ const LumoraLogin: React.FC<LumoraLoginProps> = ({
 	enablePasskeySignIn = false,
 	showErrors = true,
 	defaultPlatform,
+	showOverview = false,
 	onPlatformChange,
 	platformAssets,
 	defaultColorMode,
@@ -65,17 +66,34 @@ const LumoraLogin: React.FC<LumoraLoginProps> = ({
 	// Passkeys are only offered when the browser supports WebAuthn
 	const [isPasskeySupported, setIsPasskeySupported] = useState(false);
 
-	// A platform is always chosen, so every sign-in knows where to land: the host's default,
-	// else the user's last choice, else Centra
-	const [platform, setPlatform] = useState<PlatformId>(
-		() => defaultPlatform ?? PlatformStorage.get() ?? DEFAULT_PLATFORM
+	// The selected platform: the host's default, else the user's last choice, else Centra.
+	// With showOverview the page opens on the ecosystem overview instead, with none selected.
+	const [platform, setPlatform] = useState<PlatformId | null>(() =>
+		showOverview
+			? null
+			: (defaultPlatform ?? PlatformStorage.get() ?? DEFAULT_PLATFORM)
 	);
 
-	// Store the current platform (the starting one too), so the callback page can send the
-	// user there after an OAuth or magic link redirect
+	// Turning showOverview on later returns to the overview; turning it off selects the starting
+	// platform again (set during render, so the hero never draws the stale state)
+	const [overviewShown, setOverviewShown] = useState(showOverview);
+	if (overviewShown !== showOverview) {
+		setOverviewShown(showOverview);
+		setPlatform(
+			showOverview
+				? null
+				: (defaultPlatform ?? PlatformStorage.get() ?? DEFAULT_PLATFORM)
+		);
+	}
+
+	// Where a sign-in lands: the selected platform, else (on the overview) Centra
+	const landingPlatform = platform ?? DEFAULT_PLATFORM;
+
+	// Store it (the starting one too), so the callback page can send the user there after an
+	// OAuth or magic link redirect
 	useEffect(() => {
-		PlatformStorage.set(platform);
-	}, [platform]);
+		PlatformStorage.set(landingPlatform);
+	}, [landingPlatform]);
 	const { colorMode, toggleColorMode } = useColorMode(
 		defaultColorMode,
 		onColorModeChange
@@ -178,13 +196,16 @@ const LumoraLogin: React.FC<LumoraLoginProps> = ({
 
 		// Set success state and call success callback
 		setLoginState('success');
-		onLoginSuccess({ user, tokens, platform });
+		onLoginSuccess({ user, tokens, platform: landingPlatform });
 	};
 
-	// Switch platform; the selector never clears the choice
-	const handlePlatformChange = (nextPlatform: PlatformId) => {
+	// Switch platform. Clearing it (clicking the selected one) is only offered with showOverview,
+	// and returns to the overview
+	const handlePlatformChange = (nextPlatform: PlatformId | null) => {
 		setPlatform(nextPlatform);
-		onPlatformChange?.(nextPlatform);
+		if (nextPlatform) {
+			onPlatformChange?.(nextPlatform);
+		}
 	};
 
 	// Handle Google / Microsoft OAuth login (redirect to Lumora API)
@@ -351,6 +372,7 @@ const LumoraLogin: React.FC<LumoraLoginProps> = ({
 				value={platform}
 				platformAssets={platformAssets}
 				disabled={isBusy}
+				allowClear={showOverview}
 				onChange={handlePlatformChange}
 			/>
 

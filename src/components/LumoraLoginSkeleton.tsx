@@ -1,4 +1,9 @@
-import React, { useEffect, useLayoutEffect, useRef } from 'react';
+import React, {
+	useEffect,
+	useLayoutEffect,
+	useRef,
+	useSyncExternalStore
+} from 'react';
 import { Box, Skeleton } from '@mui/material';
 import { BrandingConfig, ColorMode, PlatformId } from '../types';
 import { getBrandingConfig } from '../utils/branding';
@@ -39,6 +44,20 @@ const BONE: Record<ColorMode, string> = {
 	dark: 'rgba(255, 255, 255, 0.08)'
 };
 const HERO_BONE = 'rgba(255, 255, 255, 0.18)';
+
+// Nothing to subscribe to: whether the HTML came from the server never changes after hydration
+const subscribeNever = () => () => {};
+
+/**
+ * True while rendering on the server or hydrating its HTML, false for a render that starts in
+ * the browser. React never runs a script it creates in the browser, and warns about it.
+ */
+const useIsServerHtml = () =>
+	useSyncExternalStore(
+		subscribeNever,
+		() => false,
+		() => true
+	);
 
 // Runs on the client only; useLayoutEffect warns during server rendering on React 18
 const useIsomorphicLayoutEffect =
@@ -151,6 +170,7 @@ const LumoraLoginSkeleton: React.FC<LumoraLoginSkeletonProps> = ({
 	const brandConfig = getBrandingConfig(branding);
 	const theme = getVariableTheme(brandConfig);
 	const rootRef = useRef<HTMLDivElement>(null);
+	const isServerHtml = useIsServerHtml();
 
 	// Client renders (no server HTML, so the script does not run): set the same attributes.
 	// React never owns them, so a server-rendered page hydrates without a mismatch.
@@ -226,11 +246,14 @@ const LumoraLoginSkeleton: React.FC<LumoraLoginSkeletonProps> = ({
 				...variableSx
 			}}
 		>
-			<script
-				dangerouslySetInnerHTML={{
-					__html: getStateScript(defaultColorMode, defaultPlatform)
-				}}
-			/>
+			{/* Server HTML only: there it runs before the first paint. In the browser the effect above does its job. */}
+			{isServerHtml && (
+				<script
+					dangerouslySetInnerHTML={{
+						__html: getStateScript(defaultColorMode, defaultPlatform)
+					}}
+				/>
+			)}
 			<LoginContainer
 				theme={theme}
 				hero={hero}

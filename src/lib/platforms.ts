@@ -1,4 +1,4 @@
-import { PlatformId } from '../types';
+import { ColorMode, PlatformId } from '../types';
 
 // Neutrals of the login page in dark mode, tinted with a platform's colour
 export interface DarkPalette {
@@ -33,9 +33,9 @@ export interface PlatformConfig {
 	accent: string;
 	// Dark mode neutrals while this platform is selected
 	dark: DarkPalette;
-	// Loads the built-in dashboard shown in the hero. Each is its own chunk, fetched only
-	// when the platform is selected; a placeholder is drawn until it arrives
-	loadScreenshot: () => Promise<string>;
+	// Loads the built-in dashboard shown in the hero, drawn for the colour mode. Each is its own
+	// chunk, fetched only when the platform is selected; a placeholder is drawn until it arrives
+	loadScreenshot: (mode: ColorMode) => Promise<string>;
 }
 
 // Dark mode neutrals with no platform selected: Lumora green
@@ -78,8 +78,12 @@ export const PLATFORMS: PlatformConfig[] = [
 			muted: '#85a79f',
 			heroBg: '#0f2a24'
 		},
-		loadScreenshot: () =>
-			import('../assets/dashboards/centra.svg').then(module => module.default)
+		// Dark art is made from the light by scripts/dark-dashboards.mjs
+		loadScreenshot: mode =>
+			(mode === 'dark'
+				? import('../assets/dashboards/centra-dark.svg')
+				: import('../assets/dashboards/centra.svg')
+			).then(module => module.default)
 	},
 	{
 		id: 'xpdite',
@@ -105,8 +109,12 @@ export const PLATFORMS: PlatformConfig[] = [
 			muted: '#8899bb',
 			heroBg: '#111d33'
 		},
-		loadScreenshot: () =>
-			import('../assets/dashboards/xpdite.svg').then(module => module.default)
+		// Dark art is made from the light by scripts/dark-dashboards.mjs
+		loadScreenshot: mode =>
+			(mode === 'dark'
+				? import('../assets/dashboards/xpdite-dark.svg')
+				: import('../assets/dashboards/xpdite.svg')
+			).then(module => module.default)
 	},
 	{
 		id: 'polymer',
@@ -132,8 +140,12 @@ export const PLATFORMS: PlatformConfig[] = [
 			muted: '#83958f',
 			heroBg: '#0d1b17'
 		},
-		loadScreenshot: () =>
-			import('../assets/dashboards/polymer.svg').then(module => module.default)
+		// Dark art is made from the light by scripts/dark-dashboards.mjs
+		loadScreenshot: mode =>
+			(mode === 'dark'
+				? import('../assets/dashboards/polymer-dark.svg')
+				: import('../assets/dashboards/polymer.svg')
+			).then(module => module.default)
 	}
 ];
 

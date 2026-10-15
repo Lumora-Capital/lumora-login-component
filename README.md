@@ -231,6 +231,7 @@ When enabled, a reCAPTCHA Enterprise token is requested before a magic link is s
 | `enableRecaptcha`       | `boolean`                                                             | ❌       | `false` | Verify reCAPTCHA before sending magic links         |
 | `recaptchaSiteKey`      | `string`                                                              | ❌       | -       | reCAPTCHA site key (required with reCAPTCHA)        |
 | `defaultPlatform`       | `PlatformId`                                                          | ❌       | last choice, else `'centra'` | Platform selected on load (`'centra'`, `'xpdite'`, `'polymer'`) |
+| `showOverview`          | `boolean`                                                             | ❌       | `false` | Open on the ecosystem overview with no platform selected; clicking the selected platform returns to it |
 | `onPlatformChange`      | `(platform: PlatformId) => void`                                      | ❌       | -       | Called when the user picks another platform         |
 | `platformAssets`        | `Partial<Record<PlatformId, PlatformAssets>>`                         | ❌       | -       | Replace the built-in logos and dashboards                       |
 | `defaultColorMode`      | `'light' \| 'dark'`                                                   | ❌       | system  | Mode for users who have not used the toggle; leave unset to follow the operating system |
@@ -241,7 +242,9 @@ OAuth and magic link sign-ins finish on the callback page, so handle their succe
 
 ## Layout and Platforms
 
-`LumoraLogin` renders a full-page split layout: the sign-in panel on the left and a hero on the right (hidden below the `md` breakpoint). A platform is always selected under "Where would you like to start?" (the host's `defaultPlatform`, else the user's last choice, else Centra), so every sign-in knows where to land; choosing the selected one again keeps it. The hero shows that platform's colours, headline and screenshot, and the accent colour of the sign-in panel follows. The ecosystem overview hero (`overviewScreenshot`) is kept in the code but not shown while a platform is always selected.
+`LumoraLogin` renders a full-page split layout: the sign-in panel on the left and a hero on the right (hidden below the `md` breakpoint). A platform is always selected under "Where would you like to start?" (the host's `defaultPlatform`, else the user's last choice, else Centra), so every sign-in knows where to land; choosing the selected one again keeps it. The hero shows that platform's colours, headline and screenshot, and the accent colour of the sign-in panel follows.
+
+Set `showOverview` to open on the ecosystem overview hero instead ("One sign-in. Every platform.", with the three windows from `overviewScreenshot` stacked), with no platform selected. `defaultPlatform` and the user's last choice are then ignored. Picking a platform shows its hero, and clicking it again returns to the overview. A sign-in made from the overview lands in Centra. In the demo, open `?overview=1`.
 
 Each platform's dashboard ships with the package and needs no setup. It is a separate chunk, fetched only when that platform is selected; the hero draws a placeholder window until it arrives. Use `platformAssets` only to replace the built-in art:
 
@@ -259,6 +262,7 @@ Each platform's dashboard ships with the package and needs no setup. It is a sep
 
 -   `screenshot`: replaces the built-in dashboard shown when that platform is selected. It is drawn as is (the artwork includes its own window), pinned top-left and cropped by the hero.
 -   `overviewScreenshot`: the whole window for the overview, shadow included. The three must share one design: 872px wide with a 57px shadow margin, cut at the bottom 72px apart (Polymer tallest, Centra shortest), so they step down once their bottoms line up. The overview uses them only when all three are set, and otherwise stacks the cropped dashboards. They are not part of the package: serve them from the app (its `public/` folder or a CDN).
+-   `screenshotDark` / `overviewScreenshotDark`: the same art for dark mode, shown while the page is dark. Without one, dark mode shows the light art. The built-in dashboards have dark versions, generated from the light ones by `node scripts/dark-dashboards.mjs` (rerun it after changing a light dashboard).
 -   `logo`: replaces the built-in mark in the selector and the overview chips.
 
 First-time visitors get their operating system's light or dark mode, and the page follows it if it changes. Once someone uses the toggle, their choice is saved (`ColorModeStorage`) and wins on every later visit. `defaultColorMode` replaces the system setting only for users who have not chosen.
