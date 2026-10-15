@@ -3,13 +3,14 @@
 	"version": "2.0.0",
 	"type": "module",
 	"description": "A reusable passwordless React TypeScript login component with Google and Microsoft OAuth, magic link, passkeys, API integration, and responsive design",
-	"main": "dist/index.cjs.js",
+	"main": "dist/index.cjs",
 	"module": "dist/index.es.js",
 	"types": "dist/index.d.ts",
 	"exports": {
 		".": {
+			"types": "./dist/index.d.ts",
 			"import": "./dist/index.es.js",
-			"require": "./dist/index.cjs.js"
+			"require": "./dist/index.cjs"
 		}
 	},
 	"files": [

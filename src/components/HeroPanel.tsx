@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Box } from '@mui/material';
 import { PlatformAssets, PlatformId } from '../types';
-import { PLATFORMS, PlatformConfig, getPlatform } from '../lib/platforms';
+import { PLATFORMS, getPlatform } from '../lib/platforms';
 import { LoginTheme, gridBackground } from '../utils/loginTheme';
 import {
 	EASE_OUT,
@@ -47,17 +47,54 @@ const EYEBROW_SX = {
 	textTransform: 'uppercase'
 } as const;
 
+// Built-in dashboards already fetched, kept for the page's lifetime so each loads once
+const loadedScreenshots: Partial<Record<PlatformId, string>> = {};
+
 /**
- * Pick the screenshot for a platform: the host's asset, then the built-in one
- * @param platform - Platform configuration
+ * Screenshots for the given platforms: the host's asset, else the built-in dashboard,
+ * fetched on first use. A platform maps to undefined (placeholder) while it loads.
+ * @param ids - Platforms whose screenshots are shown
  * @param platformAssets - Host-supplied assets
- * @returns Screenshot URL, or undefined to draw a placeholder
+ * @returns Screenshot URL per platform
  */
-const getScreenshot = (
-	platform: PlatformConfig,
+const useScreenshots = (
+	ids: PlatformId[],
 	platformAssets?: Partial<Record<PlatformId, PlatformAssets>>
-): string | undefined =>
-	platformAssets?.[platform.id]?.screenshot ?? platform.screenshot;
+): Partial<Record<PlatformId, string>> => {
+	// Bumped when a built-in dashboard arrives, to redraw with it
+	const [, setLoadCount] = useState(0);
+	const idsKey = ids.join(',');
+
+	useEffect(() => {
+		let cancelled = false;
+		ids.forEach(id => {
+			if (platformAssets?.[id]?.screenshot || loadedScreenshots[id]) {
+				return;
+			}
+			getPlatform(id)
+				.loadScreenshot()
+				.then(url => {
+					loadedScreenshots[id] = url;
+					if (!cancelled) {
+						setLoadCount(count => count + 1);
+					}
+				})
+				// A failed fetch keeps the placeholder
+				.catch(() => undefined);
+		});
+		return () => {
+			cancelled = true;
+		};
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [idsKey, platformAssets]);
+
+	return Object.fromEntries(
+		ids.map(id => [
+			id,
+			platformAssets?.[id]?.screenshot ?? loadedScreenshots[id]
+		])
+	);
+};
 
 // Overview stack built from whole-window art (overviewScreenshot). Each image is the same
 // 872px-wide design with a 57px shadow margin, cut at the bottom 72px apart so the windows step
@@ -93,6 +130,12 @@ const HeroPanel: React.FC<HeroPanelProps> = ({
 	compact = false
 }) => {
 	const selected = platform ? getPlatform(platform) : null;
+
+	// The platform hero shows one dashboard, the overview stacks all three
+	const screenshots = useScreenshots(
+		selected ? [selected.id] : PLATFORMS.map(item => item.id),
+		platformAssets
+	);
 
 	// The overview uses whole-window art only when every platform supplies one
 	const hasOverviewArt = PLATFORMS.every(
@@ -233,9 +276,9 @@ const HeroPanel: React.FC<HeroPanelProps> = ({
 						<BrowserFrame
 							title={selected.name}
 							barColor={selected.frameColor}
-							screenshot={getScreenshot(selected, platformAssets)}
+							screenshot={screenshots[selected.id]}
 							sx={
-								getScreenshot(selected, platformAssets)
+								screenshots[selected.id]
 									? {
 											// Scaled by width only, so a tall hero adds space above it
 											// instead of zooming it; sits on the bottom edge and is cut
@@ -473,10 +516,7 @@ const HeroPanel: React.FC<HeroPanelProps> = ({
 										compact
 										title={item.name}
 										barColor={item.frameColor}
-										screenshot={getScreenshot(
-											item,
-											platformAssets
-										)}
+										screenshot={screenshots[id]}
 										sx={{
 											position: 'absolute',
 											...STACK_LAYOUT[id],

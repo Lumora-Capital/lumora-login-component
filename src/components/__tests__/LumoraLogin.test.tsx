@@ -188,6 +188,26 @@ describe('LumoraLogin Component', () => {
 				'https://test-api.lumora.capital'
 			);
 		});
+
+		it('should reset the button when the user comes back from the provider', async () => {
+			const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+			jest.spyOn(authService, 'initiateOAuth').mockImplementation(() => {});
+			renderWithTheme(createMockProps());
+
+			await user.click(screen.getByRole('button', { name: 'Continue with Google' }));
+			jest.advanceTimersByTime(300);
+			expect(screen.getByText('Signing in...')).toBeInTheDocument();
+
+			// Back button: the page is restored from the back-forward cache
+			const pageShow = new Event('pageshow');
+			Object.defineProperty(pageShow, 'persisted', { value: true });
+			act(() => {
+				window.dispatchEvent(pageShow);
+			});
+
+			expect(screen.queryByText('Signing in...')).not.toBeInTheDocument();
+			expect(screen.getByRole('button', { name: 'Continue with Google' })).toBeEnabled();
+		});
 	});
 
 	describe('Magic Link Sign-In', () => {

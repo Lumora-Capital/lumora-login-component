@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import { Box, ToggleButton, ToggleButtonGroup } from '@mui/material';
 import { PlatformAssets, PlatformId } from '../types';
 import { PLATFORMS } from '../lib/platforms';
-import { CARD_SHADOW, LoginTheme } from '../utils/loginTheme';
+import { CARD_SHADOW, CONTROL_HEIGHT, LoginTheme } from '../utils/loginTheme';
 import {
 	COLOR_DURATION,
 	EASE_OUT,
@@ -110,7 +110,8 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
 							sx={{
 								flex: 1,
 								gap: 0.75,
-								py: 1.25,
+								...CONTROL_HEIGHT,
+								py: 0,
 								px: 1,
 								// Override the group's joined-button borders and radii
 								border: 'none !important',

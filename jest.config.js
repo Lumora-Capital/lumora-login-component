@@ -3,7 +3,8 @@ export default {
 	setupFilesAfterEnv: ['<rootDir>/src/setupTests.ts'],
 	moduleNameMapper: {
 		'^@/(.*)$': '<rootDir>/src/$1',
-		'\\.(css|less|scss|sass)$': 'identity-obj-proxy'
+		'\\.(css|less|scss|sass)$': 'identity-obj-proxy',
+		'\\.svg$': '<rootDir>/src/__mocks__/fileMock.ts'
 	},
 	transform: {
 		'^.+\\.(ts|tsx)$': [

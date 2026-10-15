@@ -72,13 +72,13 @@ rules:
         - In `package.json`, include:
             ```json
             {
-            	"main": "dist/index.cjs.js",
+            	"main": "dist/index.cjs",
             	"module": "dist/index.es.js",
             	"types": "dist/index.d.ts",
             	"exports": {
             		".": {
             			"import": "./dist/index.es.js",
-            			"require": "./dist/index.cjs.js"
+            			"require": "./dist/index.cjs"
             		}
             	},
             	"files": ["dist"],

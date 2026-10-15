@@ -56,6 +56,13 @@ export interface LoginTheme {
 // Laptop-height screens: spacing tightens so the sign-in panel fits without scrolling
 export const SHORT_SCREEN = '@media (max-height: 920px)';
 
+// Height of every button and input in the sign-in panel, platform tabs included. Shorter on
+// laptop and phone heights so the panel fits, still above the 44px touch target.
+export const CONTROL_HEIGHT = {
+	height: 50,
+	[SHORT_SCREEN]: { height: 46 }
+} as const;
+
 // Shadow under raised cards (platform selector)
 export const CARD_SHADOW = '0 1px 2px rgba(18, 51, 45, 0.06), 0 8px 24px rgba(18, 51, 45, 0.06)';
 

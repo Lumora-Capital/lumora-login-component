@@ -13,7 +13,7 @@ import {
 	PlatformId
 } from '../types';
 import { getBrandingConfig } from '../utils/branding';
-import { focusRing, getLoginTheme } from '../utils/loginTheme';
+import { CONTROL_HEIGHT, focusRing, getLoginTheme } from '../utils/loginTheme';
 import { THEME_TRANSITION } from '../utils/motion';
 import { DEFAULT_PLATFORM, PlatformStorage } from '../lib/platforms';
 import { useColorMode } from '../hooks/useColorMode';
@@ -87,6 +87,22 @@ const LumoraLogin: React.FC<LumoraLoginProps> = ({
 
 	// OAuth and magic link flows land on this frontend route
 	const getCallbackUri = () => `${window.location.origin}/callback`;
+
+	// Back from the provider's page (e.g. the user cancelled): the browser restores this page
+	// from its back-forward cache as it was left, so the button would stay on "Signing in..."
+	useEffect(() => {
+		const handlePageShow = (event: PageTransitionEvent) => {
+			if (event.persisted) {
+				setLoginState(state =>
+					state === 'google-loading' || state === 'microsoft-loading'
+						? 'idle'
+						: state
+				);
+			}
+		};
+		window.addEventListener('pageshow', handlePageShow);
+		return () => window.removeEventListener('pageshow', handlePageShow);
+	}, []);
 
 	// Detect WebAuthn support on the client only
 	useEffect(() => {
@@ -436,7 +452,7 @@ const LumoraLogin: React.FC<LumoraLoginProps> = ({
 						) : undefined
 					}
 					sx={{
-						height: 52,
+						...CONTROL_HEIGHT,
 						borderRadius: '10px',
 						borderWidth: 1.5,
 						borderColor: theme.accent,

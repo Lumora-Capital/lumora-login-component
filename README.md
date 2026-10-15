@@ -232,7 +232,7 @@ When enabled, a reCAPTCHA Enterprise token is requested before a magic link is s
 | `recaptchaSiteKey`      | `string`                                                              | ❌       | -       | reCAPTCHA site key (required with reCAPTCHA)        |
 | `defaultPlatform`       | `PlatformId`                                                          | ❌       | last choice, else `'centra'` | Platform selected on load (`'centra'`, `'xpdite'`, `'polymer'`) |
 | `onPlatformChange`      | `(platform: PlatformId) => void`                                      | ❌       | -       | Called when the user picks another platform         |
-| `platformAssets`        | `Partial<Record<PlatformId, PlatformAssets>>`                         | ❌       | -       | Real logos and screenshots; placeholders are drawn without them |
+| `platformAssets`        | `Partial<Record<PlatformId, PlatformAssets>>`                         | ❌       | -       | Replace the built-in logos and dashboards                       |
 | `defaultColorMode`      | `'light' \| 'dark'`                                                   | ❌       | system  | Mode for users who have not used the toggle; leave unset to follow the operating system |
 | `onColorModeChange`     | `(mode: ColorMode) => void`                                           | ❌       | -       | Called when the user flips the light / dark toggle  |
 | `branding`              | `BrandingConfig`                                                      | ❌       | -       | Logo, colors and copy                               |
@@ -243,33 +243,23 @@ OAuth and magic link sign-ins finish on the callback page, so handle their succe
 
 `LumoraLogin` renders a full-page split layout: the sign-in panel on the left and a hero on the right (hidden below the `md` breakpoint). A platform is always selected under "Where would you like to start?" (the host's `defaultPlatform`, else the user's last choice, else Centra), so every sign-in knows where to land; choosing the selected one again keeps it. The hero shows that platform's colours, headline and screenshot, and the accent colour of the sign-in panel follows. The ecosystem overview hero (`overviewScreenshot`) is kept in the code but not shown while a platform is always selected.
 
-Screenshots and platform logos are placeholders until you supply them:
+Each platform's dashboard ships with the package and needs no setup. It is a separate chunk, fetched only when that platform is selected; the hero draws a placeholder window until it arrives. Use `platformAssets` only to replace the built-in art:
 
 ```tsx
 <LumoraLogin
 	// ... other props
 	platformAssets={{
 		centra: {
-			screenshot: '/platform-dashboards/centra.svg',
+			screenshot: '/my-centra-dashboard.svg',
 			overviewScreenshot: '/platform-dashboards/uncut/centra-uncut.svg'
-		},
-		xpdite: {
-			screenshot: '/platform-dashboards/xpdite.svg',
-			overviewScreenshot: '/platform-dashboards/uncut/xpdite-uncut.svg'
-		},
-		polymer: {
-			screenshot: '/platform-dashboards/polymer.svg',
-			overviewScreenshot: '/platform-dashboards/uncut/polymer-uncut.svg'
 		}
 	}}
 />
 ```
 
--   `screenshot`: the dashboard shown when that platform is selected. It is drawn as is (the artwork includes its own window), pinned top-left and cropped by the hero.
--   `overviewScreenshot`: the whole window for the overview, shadow included. The three must share one design: 872px wide with a 57px shadow margin, cut at the bottom 72px apart (Polymer tallest, Centra shortest), so they step down once their bottoms line up. The overview uses them only when all three are set, and otherwise stacks the cropped `screenshot`s.
+-   `screenshot`: replaces the built-in dashboard shown when that platform is selected. It is drawn as is (the artwork includes its own window), pinned top-left and cropped by the hero.
+-   `overviewScreenshot`: the whole window for the overview, shadow included. The three must share one design: 872px wide with a 57px shadow margin, cut at the bottom 72px apart (Polymer tallest, Centra shortest), so they step down once their bottoms line up. The overview uses them only when all three are set, and otherwise stacks the cropped dashboards. They are not part of the package: serve them from the app (its `public/` folder or a CDN).
 -   `logo`: replaces the built-in mark in the selector and the overview chips.
-
-Serve the files from the app (its `public/` folder or a CDN); they are not part of the package.
 
 First-time visitors get their operating system's light or dark mode, and the page follows it if it changes. Once someone uses the toggle, their choice is saved (`ColorModeStorage`) and wins on every later visit. `defaultColorMode` replaces the system setting only for users who have not chosen.
 
@@ -388,6 +378,7 @@ Open `http://localhost:3001`. The settings button (bottom right) lets you toggle
 -   **BREAKING**: Magic link is an inline work email field; the separate form screen, the `'magic-link'` login state and the `magicLinkTitle` / `magicLinkDescription` branding fields are removed
 -   **BREAKING**: Default branding is now the Lumora palette (`primaryColor` `#4a9d8a`, `companyName` `'Lumora Capital'`) and no placeholder logo
 -   **NEW**: "Where would you like to start?" platform selector (`defaultPlatform`, `onPlatformChange`, `platformAssets`); a platform is always selected (Centra by default), and `onLoginSuccess` and `useAuthCallback` report it
+-   **NEW**: Platform dashboards ship with the package, each loaded only when its platform is selected; `platformAssets` is now only needed to replace them
 -   **NEW**: Light / dark toggle (`defaultColorMode`, `onColorModeChange`): follows the system setting until the user chooses, then remembers the choice
 -   **NEW**: "First time here?" card and footer (security note, IT support link, copyright), all set through `branding`
 -   **FIXED**: A failed sign-in (unknown passkey, used magic link) no longer reloads the page: 401s from sign-in endpoints skip the refresh-and-redirect meant for expired sessions

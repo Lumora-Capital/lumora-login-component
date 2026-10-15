@@ -33,8 +33,9 @@ export interface PlatformConfig {
 	accent: string;
 	// Dark mode neutrals while this platform is selected
 	dark: DarkPalette;
-	// Product screenshot shown in the hero; a placeholder is drawn while this is unset
-	screenshot?: string;
+	// Loads the built-in dashboard shown in the hero. Each is its own chunk, fetched only
+	// when the platform is selected; a placeholder is drawn until it arrives
+	loadScreenshot: () => Promise<string>;
 }
 
 // Dark mode neutrals with no platform selected: Lumora green
@@ -50,8 +51,7 @@ export const LUMORA_DARK_PALETTE: DarkPalette = {
 
 /**
  * The three Lumora platforms, in the order the selector shows them.
- * Screenshots are left unset so the hero draws placeholders: pass real ones through
- * the `platformAssets` prop or set `screenshot` here.
+ * The host can replace a built-in dashboard through the `platformAssets` prop.
  */
 export const PLATFORMS: PlatformConfig[] = [
 	{
@@ -77,7 +77,9 @@ export const PLATFORMS: PlatformConfig[] = [
 			text: '#bdd6cf',
 			muted: '#85a79f',
 			heroBg: '#0f2a24'
-		}
+		},
+		loadScreenshot: () =>
+			import('../assets/dashboards/centra.svg').then(module => module.default)
 	},
 	{
 		id: 'xpdite',
@@ -102,7 +104,9 @@ export const PLATFORMS: PlatformConfig[] = [
 			text: '#bfcbe3',
 			muted: '#8899bb',
 			heroBg: '#111d33'
-		}
+		},
+		loadScreenshot: () =>
+			import('../assets/dashboards/xpdite.svg').then(module => module.default)
 	},
 	{
 		id: 'polymer',
@@ -127,7 +131,9 @@ export const PLATFORMS: PlatformConfig[] = [
 			text: '#b9c9c4',
 			muted: '#83958f',
 			heroBg: '#0d1b17'
-		}
+		},
+		loadScreenshot: () =>
+			import('../assets/dashboards/polymer.svg').then(module => module.default)
 	}
 ];
 

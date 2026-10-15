@@ -4,7 +4,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { Box, Button, CircularProgress, InputBase } from '@mui/material';
 import { MagicLinkFormData } from '../types';
-import { LoginTheme, focusRing } from '../utils/loginTheme';
+import { CONTROL_HEIGHT, LoginTheme, focusRing } from '../utils/loginTheme';
 import { THEME_TRANSITION } from '../utils/motion';
 
 const validationSchema = yup.object({
@@ -75,7 +75,7 @@ const MagicLinkForm: React.FC<MagicLinkFormProps> = ({
 					sx={{
 						flex: 1,
 						minWidth: 0,
-						height: 50,
+						...CONTROL_HEIGHT,
 						px: 2,
 						borderRadius: '10px',
 						border: `1px solid ${errors.email ? '#d14343' : theme.border}`,
@@ -103,7 +103,7 @@ const MagicLinkForm: React.FC<MagicLinkFormProps> = ({
 					disabled={isDisabled}
 					sx={{
 						flexShrink: 0,
-						height: 50,
+						...CONTROL_HEIGHT,
 						px: 1.5,
 						minWidth: 92,
 						borderRadius: '10px',

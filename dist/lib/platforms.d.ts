@@ -21,13 +21,12 @@ export interface PlatformConfig {
     frameColor: string;
     accent: string;
     dark: DarkPalette;
-    screenshot?: string;
+    loadScreenshot: () => Promise<string>;
 }
 export declare const LUMORA_DARK_PALETTE: DarkPalette;
 /**
  * The three Lumora platforms, in the order the selector shows them.
- * Screenshots are left unset so the hero draws placeholders: pass real ones through
- * the `platformAssets` prop or set `screenshot` here.
+ * The host can replace a built-in dashboard through the `platformAssets` prop.
  */
 export declare const PLATFORMS: PlatformConfig[];
 export declare const DEFAULT_PLATFORM: PlatformId;

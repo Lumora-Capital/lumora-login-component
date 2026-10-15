@@ -21,7 +21,7 @@ export default defineConfig(({ command, mode }) => {
 			dts({
 				insertTypesEntry: true,
 				include: ['src/**/*'],
-				exclude: ['src/**/*.test.*', 'src/**/*.spec.*']
+				exclude: ['src/**/*.test.*', 'src/**/*.spec.*', 'src/__mocks__/**']
 			})
 		],
 		build: {
@@ -29,7 +29,8 @@ export default defineConfig(({ command, mode }) => {
 				entry: 'src/index.ts',
 				name: 'LumoraLogin',
 				formats: ['es', 'cjs'],
-				fileName: format => `index.${format}.js`
+				// .cjs: with "type": "module" Node would read a .js CommonJS build as an ES module
+				fileName: format => (format === 'cjs' ? 'index.cjs' : 'index.es.js')
 			},
 			rollupOptions: {
 				external: [

@@ -32,6 +32,12 @@ export interface LoginTheme {
     bodyFont: string;
 }
 export declare const SHORT_SCREEN = "@media (max-height: 920px)";
+export declare const CONTROL_HEIGHT: {
+    readonly height: 50;
+    readonly "@media (max-height: 920px)": {
+        readonly height: 46;
+    };
+};
 export declare const CARD_SHADOW = "0 1px 2px rgba(18, 51, 45, 0.06), 0 8px 24px rgba(18, 51, 45, 0.06)";
 /**
  * Resolve the page colours for a colour mode and the selected platform

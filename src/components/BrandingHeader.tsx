@@ -139,8 +139,9 @@ const BrandingHeader: React.FC<BrandingHeaderProps> = ({
 						component="h1"
 						sx={{
 							m: 0,
-							mt: 3.5,
-							[SHORT_SCREEN]: { mt: 1 },
+							// Clear space between the logo and the welcome title
+							mt: 4.5,
+							[SHORT_SCREEN]: { mt: 3 },
 							fontFamily: theme.headingFont,
 							fontSize: 42,
 							fontWeight: 600,

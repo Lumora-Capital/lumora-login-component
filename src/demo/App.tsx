@@ -154,18 +154,15 @@ const App: React.FC = () => {
 				enablePasskeySignIn={enablePasskeySignIn}
 				defaultPlatform={demoPlatform ?? undefined}
 				defaultColorMode={demoColorMode}
-				// Dashboard artwork served from public/platform-dashboards
+				// Overview art served from public/platform-dashboards; the platform dashboards are built in
 				platformAssets={{
 					centra: {
-						screenshot: '/platform-dashboards/centra.svg',
 						overviewScreenshot: '/platform-dashboards/uncut/centra-uncut.svg'
 					},
 					xpdite: {
-						screenshot: '/platform-dashboards/xpdite.svg',
 						overviewScreenshot: '/platform-dashboards/uncut/xpdite-uncut.svg'
 					},
 					polymer: {
-						screenshot: '/platform-dashboards/polymer.svg',
 						overviewScreenshot: '/platform-dashboards/uncut/polymer-uncut.svg'
 					}
 				}}

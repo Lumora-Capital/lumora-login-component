@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button, CircularProgress } from '@mui/material';
-import { LoginTheme } from '../utils/loginTheme';
+import { CONTROL_HEIGHT, LoginTheme } from '../utils/loginTheme';
 import { THEME_TRANSITION } from '../utils/motion';
 
 interface SignInOptionButtonProps {
@@ -39,7 +39,7 @@ const SignInOptionButton: React.FC<SignInOptionButtonProps> = ({
 			onClick={onClick}
 			disabled={disabled}
 			sx={{
-				height: 48,
+				...CONTROL_HEIGHT,
 				borderRadius: '10px',
 				textTransform: 'none',
 				// Buttons are set in Montserrat
