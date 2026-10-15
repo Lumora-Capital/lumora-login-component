@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Box } from '@mui/material';
-import { Theme, ThemeProvider, createTheme } from '@mui/material/styles';
+import { ThemeProvider, createTheme, useTheme } from '@mui/material/styles';
 import { LoginTheme, SHORT_SCREEN } from '../utils/loginTheme';
 import {
 	REDUCED_MOTION_SX,
@@ -10,12 +10,6 @@ import {
 
 // The layout is sized in 8px spacing units; the host's theme may use another unit (Nexa uses 4)
 const LUMORA_SPACING = createTheme({ spacing: 8 }).spacing;
-
-// Keeps the host's theme but swaps in the 8px unit
-const withLumoraSpacing = (hostTheme: Theme): Theme => ({
-	...hostTheme,
-	spacing: LUMORA_SPACING
-});
 
 // Largest the login layout grows; bigger screens get page background around it
 const LAYOUT_MAX_WIDTH = 1760;
@@ -74,10 +68,18 @@ const LoginContainer: React.FC<LoginContainerProps> = ({
 	// mounts and fades up on its own without remounting the others
 	const sections = React.Children.toArray(children);
 
+	// The host's theme (MUI's default when the host has none) with the 8px unit swapped in.
+	// An object, not a function: MUI warns about a theme function with no outer theme.
+	const hostTheme = useTheme();
+	const lumoraTheme = useMemo(
+		() => ({ ...hostTheme, spacing: LUMORA_SPACING }),
+		[hostTheme]
+	);
+
 	return (
 		// Own spacing unit, so the layout looks the same in every host app.
 		// Full-width page background; the layout inside is capped and centred on wide screens
-		<ThemeProvider theme={withLumoraSpacing}>
+		<ThemeProvider theme={lumoraTheme}>
 			<Box
 				sx={{
 					minHeight: '100vh',
