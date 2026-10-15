@@ -487,7 +487,7 @@ describe('LumoraLogin Component', () => {
 			});
 		});
 
-		it('should draw a supplied screenshot instead of the placeholder', () => {
+		it('should draw a supplied screenshot instead of the placeholder', async () => {
 			renderWithTheme(
 				createMockProps({
 					defaultPlatform: 'centra',
@@ -495,8 +495,8 @@ describe('LumoraLogin Component', () => {
 				})
 			);
 
-			// Desktop hero and phone banner both show it
-			const images = screen.getAllByAltText('Centra dashboard');
+			// Desktop hero and phone banner both show it, once it has loaded
+			const images = await screen.findAllByAltText('Centra dashboard');
 			expect(images).toHaveLength(2);
 			images.forEach(image =>
 				expect(image).toHaveAttribute('src', 'https://example.com/centra.png')
@@ -521,11 +521,13 @@ describe('LumoraLogin Component', () => {
 
 			await user.click(screen.getByRole('button', { name: 'Switch to dark mode' }));
 
-			screen
-				.getAllByAltText('Centra dashboard')
-				.forEach(image =>
-					expect(image).toHaveAttribute('src', 'https://example.com/centra-dark.png')
-				);
+			await waitFor(() =>
+				screen
+					.getAllByAltText('Centra dashboard')
+					.forEach(image =>
+						expect(image).toHaveAttribute('src', 'https://example.com/centra-dark.png')
+					)
+			);
 		});
 	});
 

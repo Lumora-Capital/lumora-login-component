@@ -47,11 +47,78 @@ const EYEBROW_SX = {
 	textTransform: 'uppercase'
 } as const;
 
-// Built-in dashboards already fetched, per colour mode, kept for the page's lifetime so each
-// loads once
-const loadedScreenshots: Record<ColorMode, Partial<Record<PlatformId, string>>> = {
+// Which art of a platform: its dashboard screenshot or its window on the overview stack
+type ArtKey = 'screenshot' | 'overviewScreenshot';
+
+// Image URLs downloaded and decoded, kept for the page's lifetime, so an img showing one paints
+// in the same frame it is swapped in
+const readyImages = new Set<string>();
+
+// Image loads in flight or done, so each URL is requested once
+const imageLoads = new Map<string, Promise<void>>();
+
+// Built-in dashboard URLs once their module has been fetched, per colour mode
+const builtInUrls: Record<ColorMode, Partial<Record<PlatformId, string>>> = {
 	light: {},
 	dark: {}
+};
+
+// Built-in dashboards that failed to load, which keep the placeholder
+const failedBuiltIns: Record<ColorMode, Partial<Record<PlatformId, true>>> = {
+	light: {},
+	dark: {}
+};
+
+// Built-in dashboard loads in flight or done, so each module is requested once
+const builtInLoads: Record<
+	ColorMode,
+	Partial<Record<PlatformId, Promise<void>>>
+> = {
+	light: {},
+	dark: {}
+};
+
+/**
+ * Download and decode an image once, so an img showing it paints at once
+ * @param url - Image URL
+ * @returns Resolves when the image is ready (a failed decode is left to the img to show)
+ */
+const preloadImage = (url: string): Promise<void> => {
+	let load = imageLoads.get(url);
+	if (!load) {
+		const image = typeof Image === 'undefined' ? undefined : new Image();
+		if (image) {
+			image.src = url;
+		}
+		load = (
+			typeof image?.decode === 'function'
+				? image.decode().catch(() => undefined)
+				: Promise.resolve()
+		).then(() => {
+			readyImages.add(url);
+		});
+		imageLoads.set(url, load);
+	}
+	return load;
+};
+
+/**
+ * Fetch and decode a built-in dashboard, once per platform and colour mode
+ * @param id - Platform
+ * @param mode - Light or dark
+ * @returns Resolves when the dashboard is ready to draw, or has failed
+ */
+const loadBuiltIn = (id: PlatformId, mode: ColorMode): Promise<void> => {
+	builtInLoads[mode][id] ??= getPlatform(id)
+		.loadScreenshot(mode)
+		.then(url => {
+			builtInUrls[mode][id] = url;
+			return preloadImage(url);
+		})
+		.catch(() => {
+			failedBuiltIns[mode][id] = true;
+		});
+	return builtInLoads[mode][id];
 };
 
 /**
@@ -64,62 +131,142 @@ const loadedScreenshots: Record<ColorMode, Partial<Record<PlatformId, string>>> 
 const hostArt = (
 	assets: PlatformAssets | undefined,
 	mode: ColorMode,
-	key: 'screenshot' | 'overviewScreenshot'
+	key: ArtKey
 ): string | undefined =>
 	(mode === 'dark' ? assets?.[`${key}Dark`] : undefined) ?? assets?.[key];
 
 /**
- * Screenshots for the given platforms in the colour mode: the host's asset, else the built-in
- * dashboard, fetched on first use. While a mode's dashboard loads, the other mode's is shown if
- * it is loaded (so toggling the mode does not flash the placeholder), else undefined (placeholder).
- * @param ids - Platforms whose screenshots are shown
+ * Fetch and decode one platform's art: the host's, else the built-in dashboard
+ * (overview windows have no built-in)
+ * @param id - Platform
  * @param mode - Light or dark
+ * @param key - Which art
  * @param platformAssets - Host-supplied assets
- * @returns Screenshot URL per platform
+ * @returns Resolves when the art is ready to draw, or has failed
  */
-const useScreenshots = (
-	ids: PlatformId[],
+const loadArt = (
+	id: PlatformId,
+	mode: ColorMode,
+	key: ArtKey,
+	platformAssets?: Partial<Record<PlatformId, PlatformAssets>>
+): Promise<void> => {
+	const host = hostArt(platformAssets?.[id], mode, key);
+	if (host) {
+		return preloadImage(host);
+	}
+	return key === 'screenshot' ? loadBuiltIn(id, mode) : Promise.resolve();
+};
+
+/**
+ * One platform's art as it can be drawn now
+ * @param id - Platform
+ * @param mode - Light or dark
+ * @param key - Which art
+ * @param platformAssets - Host-supplied assets
+ * @returns The art URL once decoded, null while it loads (draw nothing), or undefined when
+ * there is none (placeholder)
+ */
+const readyArt = (
+	id: PlatformId,
+	mode: ColorMode,
+	key: ArtKey,
+	platformAssets?: Partial<Record<PlatformId, PlatformAssets>>
+): string | null | undefined => {
+	const url =
+		hostArt(platformAssets?.[id], mode, key) ??
+		(key === 'screenshot' ? builtInUrls[mode][id] : undefined);
+	if (url) {
+		return readyImages.has(url) ? url : null;
+	}
+	return key === 'overviewScreenshot' || failedBuiltIns[mode][id]
+		? undefined
+		: null;
+};
+
+/**
+ * Run a task when the browser is idle, so warming art does not compete with the page's own loading
+ * @param task - The task
+ * @returns Cancels the task if it has not run
+ */
+const whenIdle = (task: () => void): (() => void) => {
+	if (typeof window.requestIdleCallback === 'function') {
+		const handle = window.requestIdleCallback(task, { timeout: 3000 });
+		return () => window.cancelIdleCallback(handle);
+	}
+	const timer = window.setTimeout(task, 200);
+	return () => window.clearTimeout(timer);
+};
+
+/**
+ * Fetch every art a later platform or mode switch can show: this mode's first, then the other's
+ * @param mode - Current colour mode
+ * @param platformAssets - Host-supplied assets
+ */
+const warmArt = (
 	mode: ColorMode,
 	platformAssets?: Partial<Record<PlatformId, PlatformAssets>>
-): Partial<Record<PlatformId, string>> => {
-	// Bumped when a built-in dashboard arrives, to redraw with it
+): void => {
+	const keys: ArtKey[] = PLATFORMS.every(
+		item => platformAssets?.[item.id]?.overviewScreenshot
+	)
+		? ['screenshot', 'overviewScreenshot']
+		: ['screenshot'];
+	const warmMode = (artMode: ColorMode) =>
+		Promise.all(
+			PLATFORMS.flatMap(item =>
+				keys.map(key => loadArt(item.id, artMode, key, platformAssets))
+			)
+		);
+	void warmMode(mode).then(() =>
+		warmMode(mode === 'dark' ? 'light' : 'dark')
+	);
+};
+
+/**
+ * Art for the given platforms in the colour mode, each drawn only once decoded so it never
+ * shows half-loaded, the placeholder or the other mode's art. The shown art loads first; the
+ * rest is warmed when the browser is idle, so switching platform or mode swaps straight to it.
+ * @param ids - Platforms whose art is shown
+ * @param key - Which art
+ * @param mode - Light or dark
+ * @param platformAssets - Host-supplied assets
+ * @returns Per platform: the art URL, null while it loads, or undefined when there is none
+ */
+const useArt = (
+	ids: PlatformId[],
+	key: ArtKey,
+	mode: ColorMode,
+	platformAssets?: Partial<Record<PlatformId, PlatformAssets>>
+): Partial<Record<PlatformId, string | null>> => {
+	// Bumped when shown art is ready, to redraw with it
 	const [, setLoadCount] = useState(0);
 	const idsKey = ids.join(',');
 
 	useEffect(() => {
 		let cancelled = false;
-		ids.forEach(id => {
-			if (
-				hostArt(platformAssets?.[id], mode, 'screenshot') ||
-				loadedScreenshots[mode][id]
-			) {
-				return;
-			}
-			getPlatform(id)
-				.loadScreenshot(mode)
-				.then(url => {
-					loadedScreenshots[mode][id] = url;
+		let cancelWarm: (() => void) | undefined;
+		Promise.all(
+			ids.map(id =>
+				loadArt(id, mode, key, platformAssets).then(() => {
 					if (!cancelled) {
 						setLoadCount(count => count + 1);
 					}
 				})
-				// A failed fetch keeps the placeholder
-				.catch(() => undefined);
+			)
+		).then(() => {
+			if (!cancelled) {
+				cancelWarm = whenIdle(() => warmArt(mode, platformAssets));
+			}
 		});
 		return () => {
 			cancelled = true;
+			cancelWarm?.();
 		};
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [idsKey, mode, platformAssets]);
+	}, [idsKey, key, mode, platformAssets]);
 
-	const otherMode: ColorMode = mode === 'dark' ? 'light' : 'dark';
 	return Object.fromEntries(
-		ids.map(id => [
-			id,
-			hostArt(platformAssets?.[id], mode, 'screenshot') ??
-				loadedScreenshots[mode][id] ??
-				loadedScreenshots[otherMode][id]
-		])
+		ids.map(id => [id, readyArt(id, mode, key, platformAssets)])
 	);
 };
 
@@ -158,16 +305,17 @@ const HeroPanel: React.FC<HeroPanelProps> = ({
 }) => {
 	const selected = platform ? getPlatform(platform) : null;
 
-	// The platform hero shows one dashboard, the overview stacks all three
-	const screenshots = useScreenshots(
-		selected ? [selected.id] : PLATFORMS.map(item => item.id),
-		theme.mode,
-		platformAssets
-	);
-
 	// The overview uses whole-window art only when every platform supplies one
 	const hasOverviewArt = PLATFORMS.every(
 		item => platformAssets?.[item.id]?.overviewScreenshot
+	);
+
+	// The platform hero shows one dashboard, the overview stacks all three
+	const screenshots = useArt(
+		selected ? [selected.id] : PLATFORMS.map(item => item.id),
+		!selected && hasOverviewArt ? 'overviewScreenshot' : 'screenshot',
+		theme.mode,
+		platformAssets
 	);
 
 	// Side padding of the text and of the dashboard's left edge
@@ -301,25 +449,30 @@ const HeroPanel: React.FC<HeroPanelProps> = ({
 							animation: `${slideInFrame} 450ms ${EASE_OUT} 120ms both`
 						}}
 					>
-						<BrowserFrame
-							title={selected.name}
-							barColor={selected.frameColor}
-							screenshot={screenshots[selected.id]}
-							sx={
-								screenshots[selected.id]
-									? {
-											// Scaled by width only, so a tall hero adds space above it
-											// instead of zooming it; sits on the bottom edge and is cut
-											// there when the hero is short
-											width: '100%',
-											height: 'auto',
-											flexShrink: 0,
-											mt: 'auto'
-										}
-									: // The placeholder window fills the space
-										{ flex: 1 }
-							}
-						/>
+						{/* Nothing while the dashboard loads, so it never flashes the placeholder */}
+						{screenshots[selected.id] === null ? null : (
+							<BrowserFrame
+								title={selected.name}
+								barColor={selected.frameColor}
+								screenshot={
+									screenshots[selected.id] ?? undefined
+								}
+								sx={
+									screenshots[selected.id]
+										? {
+												// Scaled by width only, so a tall hero adds space above it
+												// instead of zooming it; sits on the bottom edge and is cut
+												// there when the hero is short
+												width: '100%',
+												height: 'auto',
+												flexShrink: 0,
+												mt: 'auto'
+											}
+										: // The placeholder window fills the space
+											{ flex: 1 }
+								}
+							/>
+						)}
 					</Box>
 				</React.Fragment>
 			) : (
@@ -512,40 +665,45 @@ const HeroPanel: React.FC<HeroPanelProps> = ({
 										'xpdite',
 										'centra'
 									] as PlatformId[]
-								).map((id, index) => (
-									<Box
-										key={id}
-										component="img"
-										src={hostArt(
-											platformAssets?.[id],
-											theme.mode,
-											'overviewScreenshot'
-										)}
-										alt={`${getPlatform(id).name} dashboard`}
-										sx={{
-											position: 'absolute',
-											bottom: 0,
-											left: ART_LEFT[id],
-											width: ART_WIDTH,
-											display: 'block',
-											// Back window first, front window last
-											animation: `${riseIn} 500ms ${EASE_OUT} ${200 + index * 60}ms both`
-										}}
-									/>
-								))}
+								).map((id, index) =>
+									// Nothing while the window loads
+									screenshots[id] ? (
+										<Box
+											key={id}
+											component="img"
+											src={screenshots[id]}
+											alt={`${getPlatform(id).name} dashboard`}
+											sx={{
+												position: 'absolute',
+												bottom: 0,
+												left: ART_LEFT[id],
+												width: ART_WIDTH,
+												display: 'block',
+												// Back window first, front window last
+												animation: `${riseIn} 500ms ${EASE_OUT} ${200 + index * 60}ms both`
+											}}
+										/>
+									) : null
+								)}
 							</Box>
 						) : (
 							(
 								['polymer', 'xpdite', 'centra'] as PlatformId[]
 							).map((id, index) => {
 								const item = getPlatform(id);
+								// Nothing while the dashboard loads, so it never flashes the placeholder
+								if (screenshots[id] === null) {
+									return null;
+								}
 								return (
 									<BrowserFrame
 										key={id}
 										compact
 										title={item.name}
 										barColor={item.frameColor}
-										screenshot={screenshots[id]}
+										screenshot={
+											screenshots[id] ?? undefined
+										}
 										sx={{
 											position: 'absolute',
 											...STACK_LAYOUT[id],
