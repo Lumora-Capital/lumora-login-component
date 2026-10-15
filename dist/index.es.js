@@ -414,7 +414,7 @@ const Gs = () => ({
       muted: "#85a79f",
       heroBg: "#0f2a24"
     },
-    loadScreenshot: () => import("./centra-DbISH5uv.js").then((e) => e.default)
+    loadScreenshot: () => import("./centra-C0W0TJb-.js").then((e) => e.default)
   },
   {
     id: "xpdite",
