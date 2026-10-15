@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import LumoraLogin from '../LumoraLogin';
@@ -46,7 +46,7 @@ const triggerPasskeyError = async (user: ReturnType<typeof userEvent.setup>) => 
 		new Error('Passkey request was cancelled or timed out')
 	);
 	await user.click(
-		screen.getByRole('button', { name: 'Sign in with a passkey' })
+		screen.getByRole('button', { name: 'Sign in with passkey' })
 	);
 	await waitFor(() => {
 		expect(
@@ -58,21 +58,27 @@ const triggerPasskeyError = async (user: ReturnType<typeof userEvent.setup>) => 
 describe('LumoraLogin Component', () => {
 	afterEach(() => {
 		jest.restoreAllMocks();
+		// The chosen platform and colour mode are remembered between renders
+		localStorage.clear();
 	});
 
 	describe('Basic Rendering', () => {
-		it('should render the company name and tagline', () => {
+		it('should render the company name, welcome title and tagline', () => {
 			renderWithTheme(
 				createMockProps({
 					branding: {
 						companyName: 'Test Company',
+						welcomeTitle: 'Welcome aboard',
+						welcomeTitleAccent: 'Test.',
 						tagline: 'Welcome to our platform'
 					}
 				})
 			);
 
+			// The built-in logo is named after the company
+			expect(screen.getByRole('img', { name: 'Test Company' })).toBeInTheDocument();
 			expect(
-				screen.getByRole('heading', { name: 'Test Company' })
+				screen.getByRole('heading', { name: 'Welcome aboard Test.' })
 			).toBeInTheDocument();
 			expect(
 				screen.getByText('Welcome to our platform')
@@ -98,11 +104,43 @@ describe('LumoraLogin Component', () => {
 				screen.queryByRole('button', { name: 'Continue with Microsoft' })
 			).not.toBeInTheDocument();
 			expect(
-				screen.queryByRole('button', { name: 'Email me a sign-in link' })
+				screen.queryByRole('button', { name: 'Magic Link' })
 			).not.toBeInTheDocument();
 			expect(
-				screen.queryByRole('button', { name: 'Sign in with a passkey' })
+				screen.queryByRole('button', { name: 'Sign in with passkey' })
 			).not.toBeInTheDocument();
+			// No divider when there is nothing below it
+			expect(screen.queryByText('or use your work email')).not.toBeInTheDocument();
+		});
+
+		it('should show and link the contact@lumora.capital address by default', () => {
+			renderWithTheme(createMockProps());
+
+			expect(screen.getByRole('link', { name: 'contact@lumora.capital' })).toHaveAttribute(
+				'href',
+				'mailto:contact@lumora.capital'
+			);
+		});
+
+		it('should render the first-time steps and footer', () => {
+			renderWithTheme(createMockProps({ branding: { supportUrl: 'mailto:it@example.com' } }));
+
+			expect(screen.getByRole('heading', { name: 'First time here?' })).toBeInTheDocument();
+			expect(screen.getAllByRole('listitem')).toHaveLength(3);
+			expect(
+				screen.getByText('Authorised users only. Sign-ins are logged.')
+			).toBeInTheDocument();
+			expect(screen.getByRole('link', { name: 'contact@lumora.capital' })).toHaveAttribute(
+				'href',
+				'mailto:it@example.com'
+			);
+			// Only the holder is linked, not the "©" and year
+			expect(
+				screen.getByRole('link', { name: 'Lumora Capital Solutions' })
+			).toHaveAttribute('href', 'https://lumora.capital/');
+			expect(
+				screen.getByText(`© ${new Date().getFullYear()}`, { exact: false })
+			).toBeInTheDocument();
 		});
 
 		it('should throw error when all sign-in methods are disabled', () => {
@@ -160,23 +198,18 @@ describe('LumoraLogin Component', () => {
 				.mockResolvedValue();
 			renderWithTheme(createMockProps({ enableMagicLinkSignIn: true }));
 
-			await user.click(
-				screen.getByRole('button', { name: 'Email me a sign-in link' })
-			);
 			await user.type(
-				screen.getByLabelText('Email Address'),
+				screen.getByLabelText('Work email'),
 				'test@example.com'
 			);
-			await user.click(
-				screen.getByRole('button', { name: 'Send Sign-In Link' })
-			);
+			await user.click(screen.getByRole('button', { name: 'Magic Link' }));
 
 			await waitFor(() => {
 				expect(magicLinkSpy).toHaveBeenCalledWith(
 					'test@example.com',
 					CALLBACK_URI
 				);
-				expect(screen.getByText('Check Your Inbox')).toBeInTheDocument();
+				expect(screen.getByText('Check your inbox')).toBeInTheDocument();
 			});
 		});
 
@@ -185,12 +218,7 @@ describe('LumoraLogin Component', () => {
 			const magicLinkSpy = jest.spyOn(authService, 'requestMagicLink');
 			renderWithTheme(createMockProps({ enableMagicLinkSignIn: true }));
 
-			await user.click(
-				screen.getByRole('button', { name: 'Email me a sign-in link' })
-			);
-			await user.click(
-				screen.getByRole('button', { name: 'Send Sign-In Link' })
-			);
+			await user.click(screen.getByRole('button', { name: 'Magic Link' }));
 
 			await waitFor(() => {
 				expect(screen.getByText('Email is required')).toBeInTheDocument();
@@ -206,16 +234,11 @@ describe('LumoraLogin Component', () => {
 			const props = createMockProps({ enableMagicLinkSignIn: true });
 			renderWithTheme(props);
 
-			await user.click(
-				screen.getByRole('button', { name: 'Email me a sign-in link' })
-			);
 			await user.type(
-				screen.getByLabelText('Email Address'),
+				screen.getByLabelText('Work email'),
 				'test@example.com'
 			);
-			await user.click(
-				screen.getByRole('button', { name: 'Send Sign-In Link' })
-			);
+			await user.click(screen.getByRole('button', { name: 'Magic Link' }));
 
 			await waitFor(() => {
 				expect(
@@ -225,20 +248,18 @@ describe('LumoraLogin Component', () => {
 			expect(props.onLoginError).toHaveBeenCalled();
 		});
 
-		it('should navigate back to the sign-in options', async () => {
+		it('should go back to the sign-in options from the confirmation', async () => {
 			const user = userEvent.setup();
+			jest.spyOn(authService, 'requestMagicLink').mockResolvedValue();
 			renderWithTheme(createMockProps({ enableMagicLinkSignIn: true }));
 
+			await user.type(screen.getByLabelText('Work email'), 'test@example.com');
+			await user.click(screen.getByRole('button', { name: 'Magic Link' }));
 			await user.click(
-				screen.getByRole('button', { name: 'Email me a sign-in link' })
-			);
-			await user.click(
-				screen.getByRole('button', { name: 'Back to Sign In' })
+				await screen.findByRole('button', { name: 'Back to sign in' })
 			);
 
-			expect(
-				screen.getByRole('button', { name: 'Email me a sign-in link' })
-			).toBeInTheDocument();
+			expect(screen.getByRole('button', { name: 'Magic Link' })).toBeInTheDocument();
 		});
 	});
 
@@ -253,13 +274,14 @@ describe('LumoraLogin Component', () => {
 			renderWithTheme(props);
 
 			await user.click(
-				screen.getByRole('button', { name: 'Sign in with a passkey' })
+				screen.getByRole('button', { name: 'Sign in with passkey' })
 			);
 
 			await waitFor(() => {
 				expect(props.onLoginSuccess).toHaveBeenCalledWith({
 					user: mockUser,
-					tokens
+					tokens,
+					platform: 'centra'
 				});
 			});
 			expect(getCurrentUser).not.toHaveBeenCalled();
@@ -275,13 +297,14 @@ describe('LumoraLogin Component', () => {
 			renderWithTheme(props);
 
 			await user.click(
-				screen.getByRole('button', { name: 'Sign in with a passkey' })
+				screen.getByRole('button', { name: 'Sign in with passkey' })
 			);
 
 			await waitFor(() => {
 				expect(props.onLoginSuccess).toHaveBeenCalledWith({
 					user: mockUser,
-					tokens
+					tokens,
+					platform: 'centra'
 				});
 			});
 		});
@@ -305,7 +328,7 @@ describe('LumoraLogin Component', () => {
 			renderWithTheme(props);
 
 			await user.click(
-				screen.getByRole('button', { name: 'Sign in with a passkey' })
+				screen.getByRole('button', { name: 'Sign in with passkey' })
 			);
 
 			await waitFor(() => {
@@ -316,7 +339,171 @@ describe('LumoraLogin Component', () => {
 			expect(screen.queryByRole('alert')).not.toBeInTheDocument();
 			expect(screen.queryByRole('button', { name: 'Try Again' })).not.toBeInTheDocument();
 			// The sign-in options stay usable
-			expect(screen.getByRole('button', { name: 'Sign in with a passkey' })).toBeEnabled();
+			expect(screen.getByRole('button', { name: 'Sign in with passkey' })).toBeEnabled();
+		});
+	});
+
+	describe('Platform Selection', () => {
+		it('should start on Centra and switch the hero when another platform is chosen', async () => {
+			const user = userEvent.setup();
+			const onPlatformChange = jest.fn();
+			renderWithTheme(createMockProps({ onPlatformChange }));
+
+			// Centra is selected on a first visit, and stored for the callback page
+			expect(screen.getByRole('button', { name: 'Centra' })).toHaveAttribute(
+				'aria-pressed',
+				'true'
+			);
+			expect(localStorage.getItem('lumora_platform')).toBe('centra');
+
+			await user.click(screen.getByRole('button', { name: 'Xpdite' }));
+
+			expect(onPlatformChange).toHaveBeenCalledWith('xpdite');
+			expect(screen.getByRole('button', { name: 'Xpdite' })).toHaveAttribute(
+				'aria-pressed',
+				'true'
+			);
+			expect(
+				screen.getAllByRole('complementary', { name: 'Xpdite overview' })
+			).toHaveLength(2);
+			expect(
+				screen.getAllByRole('heading', { name: 'Creating value through insight' })
+			).toHaveLength(2);
+		});
+
+		it('should keep the platform when the selected one is clicked again', async () => {
+			const user = userEvent.setup();
+			const onPlatformChange = jest.fn();
+			renderWithTheme(createMockProps({ onPlatformChange }));
+
+			await user.click(screen.getByRole('button', { name: 'Centra' }));
+
+			expect(onPlatformChange).not.toHaveBeenCalled();
+			expect(screen.getByRole('button', { name: 'Centra' })).toHaveAttribute(
+				'aria-pressed',
+				'true'
+			);
+		});
+
+		it("should start on the user's last platform over Centra", () => {
+			localStorage.setItem('lumora_platform', 'polymer');
+			renderWithTheme(createMockProps());
+
+			expect(screen.getByRole('button', { name: 'Polymer' })).toHaveAttribute(
+				'aria-pressed',
+				'true'
+			);
+		});
+
+		it('should remember the platform for the callback page and pass it on sign-in', async () => {
+			const user = userEvent.setup();
+			const tokens = { accessToken: 'access', refreshToken: 'refresh' };
+			const mockUser = { id: '1', email: 'test@example.com' };
+			jest.spyOn(authService, 'loginWithPasskey').mockResolvedValue({ tokens, user: mockUser });
+			const props = createMockProps({ enablePasskeySignIn: true });
+			renderWithTheme(props);
+
+			await user.click(screen.getByRole('button', { name: 'Polymer' }));
+			expect(localStorage.getItem('lumora_platform')).toBe('polymer');
+
+			await user.click(screen.getByRole('button', { name: 'Sign in with passkey' }));
+
+			await waitFor(() => {
+				expect(props.onLoginSuccess).toHaveBeenCalledWith({
+					user: mockUser,
+					tokens,
+					platform: 'polymer'
+				});
+			});
+		});
+
+		it('should draw a supplied screenshot instead of the placeholder', () => {
+			renderWithTheme(
+				createMockProps({
+					defaultPlatform: 'centra',
+					platformAssets: { centra: { screenshot: 'https://example.com/centra.png' } }
+				})
+			);
+
+			// Desktop hero and phone banner both show it
+			const images = screen.getAllByAltText('Centra dashboard');
+			expect(images).toHaveLength(2);
+			images.forEach(image =>
+				expect(image).toHaveAttribute('src', 'https://example.com/centra.png')
+			);
+			expect(screen.queryByTestId('screenshot-placeholder')).not.toBeInTheDocument();
+		});
+	});
+
+	describe('Color Mode', () => {
+		// Pretend the operating system prefers dark (or light) mode
+		const mockSystemColorMode = (mode: 'light' | 'dark') => {
+			const listeners: ((event: { matches: boolean }) => void)[] = [];
+			Object.defineProperty(window, 'matchMedia', {
+				configurable: true,
+				writable: true,
+				value: jest.fn().mockImplementation((query: string) => ({
+					matches: mode === 'dark' && query === '(prefers-color-scheme: dark)',
+					media: query,
+					addEventListener: (_: string, listener: (event: { matches: boolean }) => void) =>
+						listeners.push(listener),
+					removeEventListener: jest.fn()
+				}))
+			});
+			// Simulates the system switching modes while the page is open
+			return (matches: boolean) => listeners.forEach(listener => listener({ matches }));
+		};
+
+		afterEach(() => {
+			delete (window as unknown as { matchMedia?: unknown }).matchMedia;
+		});
+
+		it('should follow the system setting for first-time visitors', () => {
+			mockSystemColorMode('dark');
+			renderWithTheme(createMockProps());
+
+			expect(
+				screen.getByRole('button', { name: 'Switch to light mode' })
+			).toBeInTheDocument();
+		});
+
+		it('should follow the system when it changes while the page is open', () => {
+			const setSystemDark = mockSystemColorMode('light');
+			renderWithTheme(createMockProps());
+
+			act(() => setSystemDark(true));
+
+			expect(
+				screen.getByRole('button', { name: 'Switch to light mode' })
+			).toBeInTheDocument();
+		});
+
+		it('should remember the toggled mode over the system setting', async () => {
+			const user = userEvent.setup();
+			mockSystemColorMode('light');
+			const onColorModeChange = jest.fn();
+			const { unmount } = renderWithTheme(createMockProps({ onColorModeChange }));
+
+			await user.click(screen.getByRole('button', { name: 'Switch to dark mode' }));
+
+			expect(onColorModeChange).toHaveBeenCalledWith('dark');
+			expect(localStorage.getItem('lumora_color_mode')).toBe('dark');
+
+			// A later visit opens in the chosen mode, even with a light system and host default
+			unmount();
+			renderWithTheme(createMockProps({ defaultColorMode: 'light' }));
+			expect(
+				screen.getByRole('button', { name: 'Switch to light mode' })
+			).toBeInTheDocument();
+		});
+
+		it('should use the host default over the system for users who have not chosen', () => {
+			mockSystemColorMode('dark');
+			renderWithTheme(createMockProps({ defaultColorMode: 'light' }));
+
+			expect(
+				screen.getByRole('button', { name: 'Switch to dark mode' })
+			).toBeInTheDocument();
 		});
 	});
 
@@ -358,7 +545,7 @@ describe('LumoraLogin Component', () => {
 				})
 			);
 
-			expect(screen.getByAltText('Lumora')).toHaveAttribute(
+			expect(screen.getByAltText('Lumora Capital')).toHaveAttribute(
 				'src',
 				'https://example.com/logo.png'
 			);
@@ -440,16 +627,11 @@ describe('LumoraLogin Component', () => {
 				})
 			);
 
-			await user.click(
-				screen.getByRole('button', { name: 'Email me a sign-in link' })
-			);
 			await user.type(
-				screen.getByLabelText('Email Address'),
+				screen.getByLabelText('Work email'),
 				'test@example.com'
 			);
-			await user.click(
-				screen.getByRole('button', { name: 'Send Sign-In Link' })
-			);
+			await user.click(screen.getByRole('button', { name: 'Magic Link' }));
 
 			await waitFor(() => {
 				expect(execute).toHaveBeenCalledWith('test-site-key', {

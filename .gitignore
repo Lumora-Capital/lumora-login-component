@@ -31,3 +31,6 @@ dist-ssr
 
 # TypeScript
 *.tsbuildinfo
+
+# Original design exports kept beside their optimised copies (tens of MB each)
+public/**/*.source.svg

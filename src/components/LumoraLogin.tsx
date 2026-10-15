@@ -1,11 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { SubmitHandler } from 'react-hook-form';
-import { Box, Alert, Stack, Button } from '@mui/material';
-import {
-	Google as GoogleIcon,
-	MailOutline as MailOutlineIcon,
-	Fingerprint as FingerprintIcon
-} from '@mui/icons-material';
+import { Box, Alert, Button, CircularProgress, Divider } from '@mui/material';
+import { Google as GoogleIcon } from '@mui/icons-material';
 import { browserSupportsWebAuthn } from '@simplewebauthn/browser';
 import {
 	LumoraLoginProps,
@@ -13,9 +9,14 @@ import {
 	LumoraUser,
 	MagicLinkFormData,
 	LoginState,
-	ErrorState
+	ErrorState,
+	PlatformId
 } from '../types';
 import { getBrandingConfig } from '../utils/branding';
+import { focusRing, getLoginTheme } from '../utils/loginTheme';
+import { THEME_TRANSITION } from '../utils/motion';
+import { DEFAULT_PLATFORM, PlatformStorage } from '../lib/platforms';
+import { useColorMode } from '../hooks/useColorMode';
 import { isSignInBusy } from '../utils/loginState';
 import { TokenStorage } from '../lib/tokenStorage';
 import { API_CONSTANTS } from '../lib/constants';
@@ -26,9 +27,13 @@ import { getApiClient } from '../lib/apiClient';
 import BrandingHeader from './BrandingHeader';
 import SignInOptionButton from './SignInOptionButton';
 import MicrosoftIcon from './MicrosoftIcon';
-import EmailRequestForm from './EmailRequestForm';
+import MagicLinkForm from './MagicLinkForm';
 import EmailSentSuccess from './EmailSentSuccess';
 import LoginContainer from './LoginContainer';
+import PlatformSelector from './PlatformSelector';
+import HeroPanel from './HeroPanel';
+import FirstTimeCard from './FirstTimeCard';
+import LoginFooter from './LoginFooter';
 
 /**
  * Lumora Login Component
@@ -46,6 +51,11 @@ const LumoraLogin: React.FC<LumoraLoginProps> = ({
 	enableMagicLinkSignIn = false,
 	enablePasskeySignIn = false,
 	showErrors = true,
+	defaultPlatform,
+	onPlatformChange,
+	platformAssets,
+	defaultColorMode,
+	onColorModeChange,
 	branding
 }) => {
 	// Component state management
@@ -55,8 +65,25 @@ const LumoraLogin: React.FC<LumoraLoginProps> = ({
 	// Passkeys are only offered when the browser supports WebAuthn
 	const [isPasskeySupported, setIsPasskeySupported] = useState(false);
 
-	// Get merged branding configuration
+	// A platform is always chosen, so every sign-in knows where to land: the host's default,
+	// else the user's last choice, else Centra
+	const [platform, setPlatform] = useState<PlatformId>(
+		() => defaultPlatform ?? PlatformStorage.get() ?? DEFAULT_PLATFORM
+	);
+
+	// Store the current platform (the starting one too), so the callback page can send the
+	// user there after an OAuth or magic link redirect
+	useEffect(() => {
+		PlatformStorage.set(platform);
+	}, [platform]);
+	const { colorMode, toggleColorMode } = useColorMode(
+		defaultColorMode,
+		onColorModeChange
+	);
+
+	// Get merged branding configuration and the colours it resolves to
 	const brandConfig = getBrandingConfig(branding);
+	const theme = getLoginTheme(brandConfig, colorMode, platform);
 
 	// OAuth and magic link flows land on this frontend route
 	const getCallbackUri = () => `${window.location.origin}/callback`;
@@ -123,7 +150,10 @@ const LumoraLogin: React.FC<LumoraLoginProps> = ({
 	};
 
 	// Store tokens, fetch the user profile and notify the host app
-	const completeSignIn = async (tokens: LumoraAuthTokens, signedInUser?: LumoraUser) => {
+	const completeSignIn = async (
+		tokens: LumoraAuthTokens,
+		signedInUser?: LumoraUser
+	) => {
 		// Store tokens in localStorage
 		TokenStorage.setTokens(tokens.accessToken, tokens.refreshToken);
 
@@ -132,7 +162,13 @@ const LumoraLogin: React.FC<LumoraLoginProps> = ({
 
 		// Set success state and call success callback
 		setLoginState('success');
-		onLoginSuccess({ user, tokens });
+		onLoginSuccess({ user, tokens, platform });
+	};
+
+	// Switch platform; the selector never clears the choice
+	const handlePlatformChange = (nextPlatform: PlatformId) => {
+		setPlatform(nextPlatform);
+		onPlatformChange?.(nextPlatform);
 	};
 
 	// Handle Google / Microsoft OAuth login (redirect to Lumora API)
@@ -180,14 +216,10 @@ const LumoraLogin: React.FC<LumoraLoginProps> = ({
 		}
 	};
 
-	// Handle navigate to magic link form
-	const handleNavigateToMagicLink = () => {
-		setError(null);
-		setLoginState('magic-link');
-	};
-
 	// Handle magic link form submission
-	const handleMagicLinkSubmit: SubmitHandler<MagicLinkFormData> = async data => {
+	const handleMagicLinkSubmit: SubmitHandler<
+		MagicLinkFormData
+	> = async data => {
 		setLoginState('magic-link-loading');
 		setError(null);
 
@@ -202,7 +234,7 @@ const LumoraLogin: React.FC<LumoraLoginProps> = ({
 		} catch (err) {
 			const error = err as Error;
 			setError({ message: error.message, type: 'magic-link' });
-			setLoginState('magic-link');
+			setLoginState('error');
 			onLoginError(error);
 		}
 	};
@@ -228,91 +260,124 @@ const LumoraLogin: React.FC<LumoraLoginProps> = ({
 		}
 	}, [enableRecaptcha, recaptchaSiteKey]);
 
-	// Render magic link sent screen
-	if (loginState === 'magic-link-success') {
-		return (
-			<LoginContainer brandConfig={brandConfig}>
-				<EmailSentSuccess
-					brandConfig={brandConfig}
-					title={brandConfig.magicLinkSuccessTitle || 'Check Your Email'}
-					description={
-						brandConfig.magicLinkSuccessDescription ||
-						'If this email address belongs to an active account, we have sent it a sign-in link.'
-					}
-					onBackToLogin={handleBackToSignIn}
-				/>
-			</LoginContainer>
-		);
-	}
-
-	// Render magic link request form
-	if (loginState === 'magic-link' || loginState === 'magic-link-loading') {
-		return (
-			<LoginContainer brandConfig={brandConfig}>
-				<BrandingHeader brandConfig={brandConfig} />
-				<EmailRequestForm
-					brandConfig={brandConfig}
-					title={brandConfig.magicLinkTitle || 'Sign In with Email'}
-					description={
-						brandConfig.magicLinkDescription ||
-						'Enter your email address and we will send you a one-time link to sign in.'
-					}
-					submitLabel="Send Sign-In Link"
-					isSubmitting={loginState === 'magic-link-loading'}
-					error={showErrors ? error : null}
-					onSubmit={handleMagicLinkSubmit}
-					onBackToLogin={handleBackToSignIn}
-					onCloseError={() => setError(null)}
-				/>
-			</LoginContainer>
-		);
-	}
-
 	// Passkey button requires browser WebAuthn support
 	const showPasskey = enablePasskeySignIn && isPasskeySupported;
 	const isBusy = isSignInBusy(loginState);
+	const showProviders = enableGoogleSignIn || enableMicrosoftSignIn;
+	const showEmailMethods = enableMagicLinkSignIn || showPasskey;
+
+	// Right-hand hero follows the selected platform
+	const hero = (
+		<HeroPanel
+			theme={theme}
+			platform={platform}
+			platformAssets={platformAssets}
+		/>
+	);
+	const mobileHero = (
+		<HeroPanel
+			theme={theme}
+			platform={platform}
+			platformAssets={platformAssets}
+			compact
+		/>
+	);
+
+	// Render magic link sent screen
+	if (loginState === 'magic-link-success') {
+		return (
+			<LoginContainer
+				theme={theme}
+				hero={hero}
+				mobileHero={mobileHero}
+				footer={<LoginFooter brandConfig={brandConfig} theme={theme} />}
+			>
+				<BrandingHeader
+					brandConfig={brandConfig}
+					theme={theme}
+					showWelcome={false}
+					onToggleColorMode={toggleColorMode}
+				/>
+				<Box sx={{ pt: 6 }}>
+					<EmailSentSuccess
+						theme={theme}
+						title={
+							brandConfig.magicLinkSuccessTitle ||
+							'Check your inbox'
+						}
+						description={
+							brandConfig.magicLinkSuccessDescription ||
+							'If this email address belongs to an active account, we have sent it a sign-in link.'
+						}
+						onBackToLogin={handleBackToSignIn}
+					/>
+				</Box>
+			</LoginContainer>
+		);
+	}
 
 	// Render main login form
 	return (
-		<Box>
+		<LoginContainer
+			theme={theme}
+			hero={hero}
+			mobileHero={mobileHero}
+			footer={<LoginFooter brandConfig={brandConfig} theme={theme} />}
+		>
 			<BrandingHeader
 				brandConfig={brandConfig}
-				title={
-					brandConfig.companyName
-						? brandConfig.companyName
-						: 'Sign In'
-				}
-				subtitle={brandConfig.tagline}
+				theme={theme}
+				onToggleColorMode={toggleColorMode}
 			/>
-			<LoginContainer brandConfig={brandConfig}>
-				{showErrors && error && (
-					<Alert
-						severity="error"
-						sx={{ mb: 3 }}
-						onClose={() => setError(null)}
-					>
-						{error.message}
-					</Alert>
-				)}
 
-				<Stack spacing={3}>
-					{showPasskey && (
-						<SignInOptionButton
-							brandConfig={brandConfig}
-							icon={<FingerprintIcon />}
-							label="Sign in with a passkey"
-							loadingLabel="Waiting for passkey..."
-							isLoading={loginState === 'passkey-loading'}
-							disabled={isBusy}
-							onClick={handlePasskeyLogin}
-						/>
-					)}
+			<PlatformSelector
+				theme={theme}
+				value={platform}
+				platformAssets={platformAssets}
+				disabled={isBusy}
+				onChange={handlePlatformChange}
+			/>
 
+			{showErrors && error && (
+				<Alert
+					severity="error"
+					onClose={() => setError(null)}
+					sx={{
+						borderRadius: '10px',
+						border: `1px solid ${theme.errorBorder}`,
+						backgroundColor: theme.errorBg,
+						color: theme.errorText,
+						fontFamily: theme.bodyFont,
+						fontSize: 15,
+						transition: THEME_TRANSITION,
+						'& .MuiAlert-icon': { color: theme.errorIcon },
+						'& .MuiAlert-action .MuiIconButton-root': {
+							color: theme.errorText
+						}
+					}}
+				>
+					{error.message}
+				</Alert>
+			)}
+
+			{/* Google / Microsoft side by side */}
+			{showProviders && (
+				<Box
+					sx={{
+						display: 'grid',
+						gridTemplateColumns:
+							enableGoogleSignIn && enableMicrosoftSignIn
+								? '1fr 1fr'
+								: '1fr',
+						gap: 1.5
+					}}
+				>
 					{enableGoogleSignIn && (
 						<SignInOptionButton
-							brandConfig={brandConfig}
+							theme={theme}
 							icon={<GoogleIcon />}
-							label="Continue with Google"
+							label="Google"
+							ariaLabel="Continue with Google"
 							isLoading={loginState === 'google-loading'}
 							disabled={isBusy}
 							onClick={() => handleOAuthLogin('google')}
@@ -321,46 +386,113 @@ const LumoraLogin: React.FC<LumoraLoginProps> = ({
 
 					{enableMicrosoftSignIn && (
 						<SignInOptionButton
-							brandConfig={brandConfig}
-							icon={<MicrosoftIcon />}
-							label="Continue with Microsoft"
+							theme={theme}
+							icon={<MicrosoftIcon monochrome />}
+							label="Microsoft"
+							ariaLabel="Continue with Microsoft"
 							isLoading={loginState === 'microsoft-loading'}
 							disabled={isBusy}
 							onClick={() => handleOAuthLogin('microsoft')}
 						/>
 					)}
+				</Box>
+			)}
 
-					{enableMagicLinkSignIn && (
-						<SignInOptionButton
-							brandConfig={brandConfig}
-							icon={<MailOutlineIcon />}
-							label="Email me a sign-in link"
-							disabled={isBusy}
-							onClick={handleNavigateToMagicLink}
-						/>
-					)}
+			{showProviders && showEmailMethods && (
+				<Divider
+					sx={{
+						fontFamily: theme.bodyFont,
+						fontSize: 16,
+						color: theme.label,
+						transition: THEME_TRANSITION,
+						'&::before, &::after': {
+							borderColor: theme.divider,
+							transition: THEME_TRANSITION
+						}
+					}}
+				>
+					or use your work email
+				</Divider>
+			)}
 
-					{showErrors && loginState === 'error' && (
-						<Button
-							fullWidth
-							variant="text"
-							onClick={handleBackToSignIn}
-							sx={{
-								mt: 1,
-								color: brandConfig.primaryColor,
-								textTransform: 'none',
-								fontWeight: 500,
-								'&:hover': {
-									backgroundColor: `${brandConfig.primaryColor}08`
-								}
-							}}
-						>
-							Try Again
-						</Button>
-					)}
-				</Stack>
-			</LoginContainer>
-		</Box>
+			{enableMagicLinkSignIn && (
+				<MagicLinkForm
+					theme={theme}
+					isSubmitting={loginState === 'magic-link-loading'}
+					disabled={isBusy}
+					onSubmit={handleMagicLinkSubmit}
+				/>
+			)}
+
+			{showPasskey && (
+				<Button
+					fullWidth
+					variant="outlined"
+					onClick={handlePasskeyLogin}
+					disabled={isBusy}
+					startIcon={
+						loginState === 'passkey-loading' ? (
+							<CircularProgress size={16} color="inherit" />
+						) : undefined
+					}
+					sx={{
+						height: 52,
+						borderRadius: '10px',
+						borderWidth: 1.5,
+						borderColor: theme.accent,
+						backgroundColor: theme.surface,
+						color: theme.accent,
+						fontFamily: theme.headingFont,
+						fontWeight: 600,
+						fontSize: 13,
+						letterSpacing: '0.14em',
+						transition: THEME_TRANSITION,
+						'&:hover': {
+							borderWidth: 1.5,
+							borderColor: theme.accentHover,
+							backgroundColor: `${theme.accent}0f`
+						},
+						'&.Mui-disabled': {
+							borderWidth: 1.5,
+							borderColor: theme.border,
+							color: theme.muted
+						},
+						...focusRing(theme)
+					}}
+				>
+					{loginState === 'passkey-loading'
+						? 'Waiting for passkey...'
+						: 'Sign in with passkey'}
+				</Button>
+			)}
+
+			{showErrors && loginState === 'error' && (
+				<Button
+					variant="text"
+					onClick={handleBackToSignIn}
+					sx={{
+						alignSelf: 'center',
+						mt: -1.5,
+						color: theme.accent,
+						fontFamily: theme.headingFont,
+						textTransform: 'none',
+						fontWeight: 600,
+						...focusRing(theme)
+					}}
+				>
+					Try Again
+				</Button>
+			)}
+
+			{brandConfig.firstTimeSteps &&
+				brandConfig.firstTimeSteps.length > 0 && (
+					<FirstTimeCard
+						theme={theme}
+						title={brandConfig.firstTimeTitle || 'First time here?'}
+						steps={brandConfig.firstTimeSteps}
+					/>
+				)}
+		</LoginContainer>
 	);
 };
 

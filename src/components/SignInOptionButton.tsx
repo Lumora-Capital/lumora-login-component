@@ -1,11 +1,14 @@
 import React from 'react';
 import { Button, CircularProgress } from '@mui/material';
-import { BrandingConfig } from '../types';
+import { LoginTheme } from '../utils/loginTheme';
+import { THEME_TRANSITION } from '../utils/motion';
 
 interface SignInOptionButtonProps {
-	brandConfig: BrandingConfig;
+	theme: LoginTheme;
 	icon: React.ReactNode;
 	label: string;
+	// Accessible name when the visible label is short (e.g. "Google")
+	ariaLabel?: string;
 	loadingLabel?: string;
 	isLoading?: boolean;
 	disabled?: boolean;
@@ -13,13 +16,13 @@ interface SignInOptionButtonProps {
 }
 
 /**
- * Outlined button used for alternative sign-in methods
- * (Google, Microsoft, magic link, passkey)
+ * Outlined provider button (Google, Microsoft)
  */
 const SignInOptionButton: React.FC<SignInOptionButtonProps> = ({
-	brandConfig,
+	theme,
 	icon,
 	label,
+	ariaLabel,
 	loadingLabel = 'Signing in...',
 	isLoading = false,
 	disabled = false,
@@ -29,41 +32,37 @@ const SignInOptionButton: React.FC<SignInOptionButtonProps> = ({
 		<Button
 			fullWidth
 			variant="outlined"
-			size="large"
+			aria-label={isLoading ? loadingLabel : ariaLabel}
 			startIcon={
-				isLoading ? <CircularProgress size={20} color="inherit" /> : icon
+				isLoading ? <CircularProgress size={18} color="inherit" /> : icon
 			}
 			onClick={onClick}
 			disabled={disabled}
 			sx={{
-				py: 1.5,
-				borderRadius: 1.4,
+				height: 48,
+				borderRadius: '10px',
 				textTransform: 'none',
-				fontWeight: 500,
-				fontSize: '1rem',
-				borderColor: brandConfig.textColor + '30',
-				color: brandConfig.textColor,
+				// Buttons are set in Montserrat
+				fontFamily: theme.headingFont,
+				fontWeight: 600,
+				fontSize: 15,
+				whiteSpace: 'nowrap',
+				transition: THEME_TRANSITION,
+				backgroundColor: theme.surface,
+				borderColor: theme.border,
+				color: theme.heading,
+				'& .MuiButton-startIcon .MuiSvgIcon-root': { fontSize: 20 },
 				'&:hover': {
-					borderColor: brandConfig.primaryColor,
-					backgroundColor: `${brandConfig.primaryColor}08`,
-					color: brandConfig.textColor
+					borderColor: theme.accent,
+					backgroundColor: theme.surface
 				},
-				'&:active': {
-					borderColor: brandConfig.primaryColor,
-					backgroundColor: `${brandConfig.primaryColor}12`,
-					color: brandConfig.textColor
+				'&.Mui-focusVisible': {
+					outline: `2px solid ${theme.accent}`,
+					outlineOffset: 2
 				},
-				'&:disabled': {
-					borderColor: brandConfig.textColor + '20',
-					color: brandConfig.textColor + '60'
-				},
-				'&:focus': {
-					borderColor: brandConfig.textColor + '30',
-					color: brandConfig.textColor
-				},
-				'&.MuiButton-root': {
-					borderColor: brandConfig.textColor + '30',
-					color: brandConfig.textColor
+				'&.Mui-disabled': {
+					borderColor: theme.border,
+					color: theme.muted
 				}
 			}}
 		>

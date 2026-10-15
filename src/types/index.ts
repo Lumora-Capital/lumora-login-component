@@ -6,12 +6,39 @@ export interface BrandingConfig {
 	backgroundColor?: string;
 	textColor?: string;
 	buttonTextColor?: string;
+	headingFontFamily?: string;
+	bodyFontFamily?: string;
 	companyName?: string;
+	welcomeTitle?: string;
+	welcomeTitleAccent?: string;
+	welcomeTitleColor?: string;
+	welcomeTitleAccentColor?: string;
 	tagline?: string;
-	magicLinkTitle?: string;
-	magicLinkDescription?: string;
+	firstTimeTitle?: string;
+	firstTimeSteps?: string[];
+	securityNote?: string;
+	supportLabel?: string;
+	supportUrl?: string;
+	copyright?: string;
+	copyrightHolder?: string;
+	copyrightUrl?: string;
 	magicLinkSuccessTitle?: string;
 	magicLinkSuccessDescription?: string;
+}
+
+// Lumora platforms a user can choose to start in
+export type PlatformId = 'centra' | 'xpdite' | 'polymer';
+
+// Light or dark appearance of the login page
+export type ColorMode = 'light' | 'dark';
+
+// Host-supplied artwork for a platform; anything left out falls back to a placeholder
+export interface PlatformAssets {
+	logo?: React.ReactNode;
+	// Dashboard shown when this platform is selected (cropped to the hero)
+	screenshot?: string;
+	// Whole window for the overview stack, with its shadow built in; used when all three have one
+	overviewScreenshot?: string;
 }
 
 export interface LumoraAuthConfig {
@@ -45,7 +72,11 @@ export interface LumoraLoginProps {
 	authConfig: LumoraAuthConfig;
 	
 	// Success/Error callbacks
-	onLoginSuccess: (response: { user: LumoraUser; tokens: LumoraAuthTokens }) => void;
+	onLoginSuccess: (response: {
+		user: LumoraUser;
+		tokens: LumoraAuthTokens;
+		platform: PlatformId;
+	}) => void;
 	onLoginError: (error: Error) => void;
 	
 	// Feature toggles
@@ -60,6 +91,16 @@ export interface LumoraLoginProps {
 	// error alert and no "Try Again", so the message is not shown twice
 	showErrors?: boolean;
 	
+	// Platform selection ("Where would you like to start?")
+	// Platform selected on load; without one, the user's last choice, else Centra
+	defaultPlatform?: PlatformId;
+	onPlatformChange?: (platform: PlatformId) => void;
+	platformAssets?: Partial<Record<PlatformId, PlatformAssets>>;
+
+	// Appearance
+	defaultColorMode?: ColorMode;
+	onColorModeChange?: (mode: ColorMode) => void;
+
 	// Styling
 	branding?: BrandingConfig;
 }
@@ -81,7 +122,6 @@ export type LoginState =
 	| 'passkey-loading'
 	| 'success'
 	| 'error'
-	| 'magic-link'
 	| 'magic-link-loading'
 	| 'magic-link-success';
 

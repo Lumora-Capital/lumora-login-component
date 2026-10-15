@@ -11,6 +11,9 @@ export { usePasskeyRegistration } from './hooks/usePasskeyRegistration';
 
 // Export utilities
 export { TokenStorage } from './lib/tokenStorage';
+export { PLATFORMS, PlatformStorage } from './lib/platforms';
+export { ColorModeStorage } from './lib/colorMode';
+export type { PlatformConfig } from './lib/platforms';
 
 // Export all TypeScript types
 export type {
@@ -22,5 +25,8 @@ export type {
 	LumoraAuthConfig,
 	LumoraAuthTokens,
 	LumoraUser,
-	PasskeyInfo
+	PasskeyInfo,
+	PlatformId,
+	PlatformAssets,
+	ColorMode
 } from './types';

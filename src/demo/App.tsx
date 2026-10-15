@@ -12,8 +12,11 @@ import {
 	Button,
 	Alert,
 	Card,
-	CardContent
+	CardContent,
+	Drawer,
+	Fab
 } from '@mui/material';
+import { TuneOutlined as TuneIcon } from '@mui/icons-material';
 import {
 	LumoraLogin,
 	BrandingConfig,
@@ -21,7 +24,14 @@ import {
 	TokenStorage,
 	usePasskeyRegistration
 } from '../index';
+import { ColorMode, PlatformId } from '../types';
 import CallbackPage from './CallbackPage';
+
+// ?platform=centra|xpdite|polymer and ?mode=dark open the demo in that state
+const demoParams = new URLSearchParams(window.location.search);
+const demoPlatform = demoParams.get('platform') as PlatformId | null;
+// Without ?mode the demo behaves like production: saved choice, else the system setting
+const demoColorMode = (demoParams.get('mode') as ColorMode | null) ?? undefined;
 
 // Create Material-UI theme for the demo
 const theme = createTheme({
@@ -71,15 +81,12 @@ const App: React.FC = () => {
 
 	// State for branding configuration
 	const [branding, setBranding] = useState<BrandingConfig>({
-		companyName: 'Lumora',
-		tagline: 'Secure authentication made simple',
-		primaryColor: '#1976d2',
-		secondaryColor: '#42a5f5',
-		backgroundColor: '#ffffff',
-		textColor: '#333333',
-		logoHeight: 48,
-		logo: null
+		companyName: 'Lumora Capital',
+		tagline: 'One Lumora account for Centra, Xpdite and Polymer.'
 	});
+
+	// Demo settings drawer
+	const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
 	// State for demo feedback
 	const [lastAction, setLastAction] = useState<string>('');
@@ -109,6 +116,7 @@ const App: React.FC = () => {
 			}`
 		);
 		setLoginAttempts(prev => prev + 1);
+		setIsSettingsOpen(true);
 		setIsSignedIn(true);
 		console.log('Login successful:', response);
 	};
@@ -116,6 +124,7 @@ const App: React.FC = () => {
 	// Handle login errors
 	const handleLoginError = (error: Error) => {
 		setLastAction(`❌ Login failed: ${error.message}`);
+		setIsSettingsOpen(true);
 		console.error('Login error:', error);
 	};
 
@@ -134,41 +143,61 @@ const App: React.FC = () => {
 	return (
 		<ThemeProvider theme={theme}>
 			<CssBaseline />
-			<Box
-				sx={{
-					minHeight: '100vh',
-					backgroundColor: '#f5f5f5',
-					padding: 3
+			{/* Full-page login */}
+			<LumoraLogin
+				authConfig={authConfig}
+				onLoginSuccess={handleLoginSuccess}
+				onLoginError={handleLoginError}
+				enableGoogleSignIn={enableGoogleSignIn}
+				enableMicrosoftSignIn={enableMicrosoftSignIn}
+				enableMagicLinkSignIn={enableMagicLinkSignIn}
+				enablePasskeySignIn={enablePasskeySignIn}
+				defaultPlatform={demoPlatform ?? undefined}
+				defaultColorMode={demoColorMode}
+				// Dashboard artwork served from public/platform-dashboards
+				platformAssets={{
+					centra: {
+						screenshot: '/platform-dashboards/centra.svg',
+						overviewScreenshot: '/platform-dashboards/uncut/centra-uncut.svg'
+					},
+					xpdite: {
+						screenshot: '/platform-dashboards/xpdite.svg',
+						overviewScreenshot: '/platform-dashboards/uncut/xpdite-uncut.svg'
+					},
+					polymer: {
+						screenshot: '/platform-dashboards/polymer.svg',
+						overviewScreenshot: '/platform-dashboards/uncut/polymer-uncut.svg'
+					}
 				}}
+				onPlatformChange={platform =>
+					setLastAction(`Platform: ${platform}`)
+				}
+				branding={branding}
+			/>
+
+			{/* Opens the demo settings */}
+			<Fab
+				size="medium"
+				aria-label="Demo settings"
+				onClick={() => setIsSettingsOpen(true)}
+				sx={{ position: 'fixed', right: 24, bottom: 24 }}
+			>
+				<TuneIcon />
+			</Fab>
+
+			<Drawer
+				anchor="right"
+				open={isSettingsOpen}
+				onClose={() => setIsSettingsOpen(false)}
 			>
 				<Box
 					sx={{
-						maxWidth: '1400px',
-						margin: '0 auto',
-						display: 'grid',
-						gridTemplateColumns: {
-							xs: '1fr',
-							md: 'minmax(400px, 600px) 1fr'
-						},
-						gap: 3,
-						alignItems: 'start'
+						width: { xs: '100vw', sm: 440 },
+						p: 3,
+						backgroundColor: '#f5f5f5',
+						minHeight: '100%'
 					}}
 				>
-					{/* Left Column: Login Component */}
-					<Box>
-						<LumoraLogin
-							authConfig={authConfig}
-							onLoginSuccess={handleLoginSuccess}
-							onLoginError={handleLoginError}
-							enableGoogleSignIn={enableGoogleSignIn}
-							enableMicrosoftSignIn={enableMicrosoftSignIn}
-							enableMagicLinkSignIn={enableMagicLinkSignIn}
-							enablePasskeySignIn={enablePasskeySignIn}
-							branding={branding}
-						/>
-					</Box>
-
-					{/* Right Column: Configuration & Info */}
 					<Box
 						sx={{
 							display: 'flex',
@@ -407,7 +436,7 @@ const App: React.FC = () => {
 								<TextField
 									label="Primary Color"
 									type="color"
-									value={branding.primaryColor}
+									value={branding.primaryColor ?? '#4a9d8a'}
 									onChange={e =>
 										updateBranding({
 											primaryColor: e.target.value
@@ -420,7 +449,7 @@ const App: React.FC = () => {
 								<TextField
 									label="Secondary Color"
 									type="color"
-									value={branding.secondaryColor}
+									value={branding.secondaryColor ?? '#3d8676'}
 									onChange={e =>
 										updateBranding({
 											secondaryColor: e.target.value
@@ -432,7 +461,7 @@ const App: React.FC = () => {
 
 								<TextField
 									label="Logo URL"
-									value={branding.logo as string}
+									value={(branding.logo as string) ?? ''}
 									onChange={e =>
 										updateBranding({ logo: e.target.value })
 									}
@@ -444,15 +473,9 @@ const App: React.FC = () => {
 									variant="outlined"
 									onClick={() => {
 										setBranding({
-											companyName: 'Lumora',
+											companyName: 'Lumora Capital',
 											tagline:
-												'Secure authentication made simple',
-											primaryColor: '#1976d2',
-											secondaryColor: '#42a5f5',
-											backgroundColor: '#ffffff',
-											textColor: '#333333',
-											logoHeight: 48,
-											logo: 'https://lumora.capital/_next/image?url=%2Fimages%2Flumora-logo.png&w=256&q=75'
+												'One Lumora account for Centra, Xpdite and Polymer.'
 										});
 									}}
 								>
@@ -507,7 +530,7 @@ const App: React.FC = () => {
 						</Card>
 					</Box>
 				</Box>
-			</Box>
+			</Drawer>
 		</ThemeProvider>
 	);
 };

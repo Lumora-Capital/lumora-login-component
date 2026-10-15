@@ -8,8 +8,9 @@ import { useAuthCallback } from '../hooks/useAuthCallback';
  */
 const CallbackPage: React.FC = () => {
 	const { loading, error } = useAuthCallback({
-		onSuccess: (tokens, user) => {
+		onSuccess: (tokens, user, platform) => {
 			console.log('✅ OAuth Success!');
+			console.log('Platform:', platform);
 			console.log('Access Token:', tokens.accessToken);
 			console.log('Refresh Token:', tokens.refreshToken);
 			console.log('User:', user);

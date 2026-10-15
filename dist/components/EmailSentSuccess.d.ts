@@ -1,14 +1,13 @@
 import { default as React } from 'react';
-import { BrandingConfig } from '../types';
+import { LoginTheme } from '../utils/loginTheme';
 interface EmailSentSuccessProps {
-    brandConfig: BrandingConfig;
+    theme: LoginTheme;
     title: string;
     description: string;
     onBackToLogin: () => void;
 }
 /**
- * Confirmation screen shown after an email link has been sent
- * (forget password, magic link sign-in)
+ * Confirmation shown in place of the sign-in options after a magic link was sent
  */
 declare const EmailSentSuccess: React.FC<EmailSentSuccessProps>;
 export default EmailSentSuccess;

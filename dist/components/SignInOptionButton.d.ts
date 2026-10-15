@@ -1,17 +1,17 @@
 import { default as React } from 'react';
-import { BrandingConfig } from '../types';
+import { LoginTheme } from '../utils/loginTheme';
 interface SignInOptionButtonProps {
-    brandConfig: BrandingConfig;
+    theme: LoginTheme;
     icon: React.ReactNode;
     label: string;
+    ariaLabel?: string;
     loadingLabel?: string;
     isLoading?: boolean;
     disabled?: boolean;
     onClick: () => void;
 }
 /**
- * Outlined button used for alternative sign-in methods
- * (Google, Microsoft, magic link, passkey)
+ * Outlined provider button (Google, Microsoft)
  */
 declare const SignInOptionButton: React.FC<SignInOptionButtonProps>;
 export default SignInOptionButton;

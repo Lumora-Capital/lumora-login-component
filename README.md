@@ -221,18 +221,59 @@ When enabled, a reCAPTCHA Enterprise token is requested before a magic link is s
 | `authConfig`            | `LumoraAuthConfig`                                                    | ✅       | -       | API configuration                                   |
 | `authConfig.apiBaseUrl` | `string`                                                              | ✅       | -       | Base URL for Lumora API                             |
 | `authConfig.apiKey`     | `string`                                                              | ❌       | -       | API key sent as `X-API-Key`                         |
-| `onLoginSuccess`        | `(response: { user: LumoraUser; tokens: LumoraAuthTokens }) => void` | ✅       | -       | Called after a successful passkey sign-in           |
+| `onLoginSuccess`        | `(response: { user: LumoraUser; tokens: LumoraAuthTokens; platform: PlatformId }) => void` | ✅       | -       | Called after a successful passkey sign-in           |
 | `onLoginError`          | `(error: Error) => void`                                              | ✅       | -       | Called when any sign-in attempt fails               |
 | `enableGoogleSignIn`    | `boolean`                                                             | ❌       | `true`  | Show "Continue with Google"                         |
 | `enableMicrosoftSignIn` | `boolean`                                                             | ❌       | `false` | Show "Continue with Microsoft"                      |
-| `enableMagicLinkSignIn` | `boolean`                                                             | ❌       | `false` | Show "Email me a sign-in link"                      |
-| `enablePasskeySignIn`   | `boolean`                                                             | ❌       | `false` | Show "Sign in with a passkey"                       |
+| `enableMagicLinkSignIn` | `boolean`                                                             | ❌       | `false` | Show the work email field and "Magic Link" button   |
+| `enablePasskeySignIn`   | `boolean`                                                             | ❌       | `false` | Show "Sign in with passkey"                         |
 | `showErrors`            | `boolean`                                                             | ❌       | `true`  | Draw errors in the card; `false` when the host shows `onLoginError` itself |
 | `enableRecaptcha`       | `boolean`                                                             | ❌       | `false` | Verify reCAPTCHA before sending magic links         |
 | `recaptchaSiteKey`      | `string`                                                              | ❌       | -       | reCAPTCHA site key (required with reCAPTCHA)        |
+| `defaultPlatform`       | `PlatformId`                                                          | ❌       | last choice, else `'centra'` | Platform selected on load (`'centra'`, `'xpdite'`, `'polymer'`) |
+| `onPlatformChange`      | `(platform: PlatformId) => void`                                      | ❌       | -       | Called when the user picks another platform         |
+| `platformAssets`        | `Partial<Record<PlatformId, PlatformAssets>>`                         | ❌       | -       | Real logos and screenshots; placeholders are drawn without them |
+| `defaultColorMode`      | `'light' \| 'dark'`                                                   | ❌       | system  | Mode for users who have not used the toggle; leave unset to follow the operating system |
+| `onColorModeChange`     | `(mode: ColorMode) => void`                                           | ❌       | -       | Called when the user flips the light / dark toggle  |
 | `branding`              | `BrandingConfig`                                                      | ❌       | -       | Logo, colors and copy                               |
 
-OAuth and magic link sign-ins finish on the callback page, so handle their success in `useAuthCallback`.
+OAuth and magic link sign-ins finish on the callback page, so handle their success in `useAuthCallback`. Its `onSuccess(tokens, user, platform)` receives the platform chosen before the redirect (also readable with `PlatformStorage.get()`).
+
+## Layout and Platforms
+
+`LumoraLogin` renders a full-page split layout: the sign-in panel on the left and a hero on the right (hidden below the `md` breakpoint). A platform is always selected under "Where would you like to start?" (the host's `defaultPlatform`, else the user's last choice, else Centra), so every sign-in knows where to land; choosing the selected one again keeps it. The hero shows that platform's colours, headline and screenshot, and the accent colour of the sign-in panel follows. The ecosystem overview hero (`overviewScreenshot`) is kept in the code but not shown while a platform is always selected.
+
+Screenshots and platform logos are placeholders until you supply them:
+
+```tsx
+<LumoraLogin
+	// ... other props
+	platformAssets={{
+		centra: {
+			screenshot: '/platform-dashboards/centra.svg',
+			overviewScreenshot: '/platform-dashboards/uncut/centra-uncut.svg'
+		},
+		xpdite: {
+			screenshot: '/platform-dashboards/xpdite.svg',
+			overviewScreenshot: '/platform-dashboards/uncut/xpdite-uncut.svg'
+		},
+		polymer: {
+			screenshot: '/platform-dashboards/polymer.svg',
+			overviewScreenshot: '/platform-dashboards/uncut/polymer-uncut.svg'
+		}
+	}}
+/>
+```
+
+-   `screenshot`: the dashboard shown when that platform is selected. It is drawn as is (the artwork includes its own window), pinned top-left and cropped by the hero.
+-   `overviewScreenshot`: the whole window for the overview, shadow included. The three must share one design: 872px wide with a 57px shadow margin, cut at the bottom 72px apart (Polymer tallest, Centra shortest), so they step down once their bottoms line up. The overview uses them only when all three are set, and otherwise stacks the cropped `screenshot`s.
+-   `logo`: replaces the built-in mark in the selector and the overview chips.
+
+Serve the files from the app (its `public/` folder or a CDN); they are not part of the package.
+
+First-time visitors get their operating system's light or dark mode, and the page follows it if it changes. Once someone uses the toggle, their choice is saved (`ColorModeStorage`) and wins on every later visit. `defaultColorMode` replaces the system setting only for users who have not chosen.
+
+Platform copy and colours live in `src/lib/platforms.ts`. The component does not load fonts: load Montserrat (500, 600, 700) and Source Sans 3 (400, 500, 600, 700) on the host page (see `index.html`), or set `headingFontFamily` / `bodyFontFamily`.
 
 ## TypeScript Interfaces
 
@@ -273,7 +314,6 @@ type LoginState =
 	| 'passkey-loading' // Passkey prompt in progress
 	| 'success' // Authentication successful
 	| 'error' // Authentication failed
-	| 'magic-link' // Magic link form displayed
 	| 'magic-link-loading' // Magic link request in progress
 	| 'magic-link-success'; // Magic link email sent
 ```
@@ -286,13 +326,25 @@ interface BrandingConfig {
 	logoHeight?: number; // Logo height in pixels (default: 48)
 	primaryColor?: string; // Primary color for buttons and accents
 	secondaryColor?: string; // Secondary color for hover states
-	backgroundColor?: string; // Background color of the component
-	textColor?: string; // Text color throughout the component
+	backgroundColor?: string; // Sign-in panel background (light mode)
+	textColor?: string; // Heading color (light mode)
 	buttonTextColor?: string; // Text on filled buttons, drawn in primaryColor (default: '#ffffff')
-	companyName?: string; // Company name displayed in header
-	tagline?: string; // Optional tagline below company name
-	magicLinkTitle?: string; // Magic link form title
-	magicLinkDescription?: string; // Magic link form description
+	headingFontFamily?: string; // Default: Montserrat
+	bodyFontFamily?: string; // Default: Source Sans 3
+	companyName?: string; // Wordmark shown when no logo is set (default: 'Lumora Capital')
+	welcomeTitle?: string; // Lead words of the title (default: 'Welcome to')
+	welcomeTitleAccent?: string; // Rest of the title, in its own colour (default: 'Lumora.')
+	welcomeTitleColor?: string; // Lead words colour, light mode (default: '#072d29')
+	welcomeTitleAccentColor?: string; // Accent colour, light mode (default: '#049586')
+	tagline?: string; // Line below the welcome title
+	firstTimeTitle?: string; // Default: 'First time here?'
+	firstTimeSteps?: string[]; // Numbered steps; [] hides the card
+	securityNote?: string; // Footer line with the lock icon
+	supportLabel?: string; // Text after "Need access?" (default: 'contact@lumora.capital')
+	supportUrl?: string; // Link for supportLabel (default: 'mailto:contact@lumora.capital'); plain text when empty
+	copyright?: string; // Text before the holder (default: '© <year>')
+	copyrightHolder?: string; // Default: 'Lumora Capital Solutions'
+	copyrightUrl?: string; // Link on the holder only, opened in a new tab (default: 'https://lumora.capital/')
 	magicLinkSuccessTitle?: string; // "Check your inbox" title
 	magicLinkSuccessDescription?: string; // "Check your inbox" description (default does not promise an email: only active accounts get one)
 }
@@ -319,7 +371,7 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:3001`. The demo lets you toggle each sign-in method, adjust branding, and register a passkey after signing in. It reads `VITE_API_URL` and `VITE_API_KEY` from `.env`.
+Open `http://localhost:3001`. The settings button (bottom right) lets you toggle each sign-in method, adjust branding, and register a passkey after signing in. `?platform=xpdite` and `?mode=dark` open the page in that state. It reads `VITE_API_URL` and `VITE_API_KEY` from `.env`.
 
 ## Development
 
@@ -332,6 +384,12 @@ Open `http://localhost:3001`. The demo lets you toggle each sign-in method, adju
 
 ### Unreleased
 
+-   **BREAKING**: New full-page split layout (sign-in panel + platform hero) replaces the centred card
+-   **BREAKING**: Magic link is an inline work email field; the separate form screen, the `'magic-link'` login state and the `magicLinkTitle` / `magicLinkDescription` branding fields are removed
+-   **BREAKING**: Default branding is now the Lumora palette (`primaryColor` `#4a9d8a`, `companyName` `'Lumora Capital'`) and no placeholder logo
+-   **NEW**: "Where would you like to start?" platform selector (`defaultPlatform`, `onPlatformChange`, `platformAssets`); a platform is always selected (Centra by default), and `onLoginSuccess` and `useAuthCallback` report it
+-   **NEW**: Light / dark toggle (`defaultColorMode`, `onColorModeChange`): follows the system setting until the user chooses, then remembers the choice
+-   **NEW**: "First time here?" card and footer (security note, IT support link, copyright), all set through `branding`
 -   **FIXED**: A failed sign-in (unknown passkey, used magic link) no longer reloads the page: 401s from sign-in endpoints skip the refresh-and-redirect meant for expired sessions
 -   **NEW**: `showErrors={false}` hides the card's error alert and "Try Again" for hosts that show `onLoginError` themselves
 -   **NEW**: `branding.buttonTextColor` (default white) for text on filled buttons, which previously took the host theme's contrast colour

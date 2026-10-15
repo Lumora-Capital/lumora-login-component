@@ -2,10 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import { TokenStorage } from '../lib/tokenStorage';
 import { getApiClient } from '../lib/apiClient';
 import { authService } from '../services/authService';
-import { LumoraAuthTokens, LumoraUser } from '../types';
+import { PlatformStorage } from '../lib/platforms';
+import { LumoraAuthTokens, LumoraUser, PlatformId } from '../types';
 
 export interface UseAuthCallbackConfig {
-	onSuccess?: (tokens: LumoraAuthTokens, user: LumoraUser) => void;
+	// platform is the one chosen on the login page before the redirect, or null
+	onSuccess?: (tokens: LumoraAuthTokens, user: LumoraUser, platform: PlatformId | null) => void;
 	onError?: (error: Error) => void;
 	redirectPath?: string;
 	apiBaseUrl?: string;
@@ -106,7 +108,7 @@ export const useAuthCallback = (config?: UseAuthCallbackConfig) => {
 				}
 				
 				// Call success callback
-				config?.onSuccess?.({ accessToken, refreshToken }, user);
+				config?.onSuccess?.({ accessToken, refreshToken }, user, PlatformStorage.get());
 				
 				// Security: Clean up URL by removing tokens from address bar
 				// Redirect to specified path or default to dashboard

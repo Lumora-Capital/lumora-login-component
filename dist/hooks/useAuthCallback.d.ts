@@ -1,6 +1,6 @@
-import { LumoraAuthTokens, LumoraUser } from '../types';
+import { LumoraAuthTokens, LumoraUser, PlatformId } from '../types';
 export interface UseAuthCallbackConfig {
-    onSuccess?: (tokens: LumoraAuthTokens, user: LumoraUser) => void;
+    onSuccess?: (tokens: LumoraAuthTokens, user: LumoraUser, platform: PlatformId | null) => void;
     onError?: (error: Error) => void;
     redirectPath?: string;
     apiBaseUrl?: string;

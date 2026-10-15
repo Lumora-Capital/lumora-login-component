@@ -1,7 +1,12 @@
 import { LoginState } from '../types';
 
 // Login states during which every sign-in control should be disabled
-const BUSY_STATES: LoginState[] = ['google-loading', 'microsoft-loading', 'passkey-loading'];
+const BUSY_STATES: LoginState[] = [
+	'google-loading',
+	'microsoft-loading',
+	'passkey-loading',
+	'magic-link-loading'
+];
 
 /**
  * Check whether a sign-in attempt is currently in progress

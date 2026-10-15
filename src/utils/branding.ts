@@ -6,27 +6,50 @@ import { BrandingConfig } from '../types';
  */
 export const getDefaultBranding = (): BrandingConfig => ({
 	// Company branding
-	companyName: 'Lumora',
-	tagline: 'Secure authentication made simple',
+	companyName: 'Lumora Capital',
+	// Title reads "<welcomeTitle> <welcomeTitleAccent>", each part in its own colour (light mode)
+	welcomeTitle: 'Welcome to',
+	welcomeTitleAccent: 'Lumora.',
+	welcomeTitleColor: '#072d29',
+	welcomeTitleAccentColor: '#049586',
+	tagline: 'One Lumora account for Centra, Xpdite and Polymer.',
 
-	// Visual styling
-	primaryColor: '#1976d2',
-	secondaryColor: '#42a5f5',
-	backgroundColor: '#ffffff',
-	textColor: '#333333',
+	// Visual styling (light mode; dark mode keeps primaryColor and draws its own neutrals)
+	primaryColor: '#4a9d8a',
+	secondaryColor: '#3d8676',
+	backgroundColor: '#edf3f5',
+	textColor: '#12332d',
 	// Text on filled buttons, which are drawn in primaryColor. Set, not left to the host theme's
 	// contrastText, which could be dark text on a dark brand colour.
 	buttonTextColor: '#ffffff',
 
-	// Logo configuration
-	logoHeight: 48,
-	logo: 'https://via.placeholder.com/200x80/1976d2/ffffff?text=Lumora',
+	// Fonts are not loaded by the component: the host page loads them, and these fall back
+	headingFontFamily: "'Montserrat', 'Helvetica Neue', Arial, sans-serif",
+	bodyFontFamily: "'Source Sans 3', 'Source Sans Pro', 'Helvetica Neue', Arial, sans-serif",
+
+	// Logo configuration: with no custom logo the built-in Lumora Capital logo is drawn
+	logoHeight: 32,
+
+	// "First time here?" card
+	firstTimeTitle: 'First time here?',
+	firstTimeSteps: [
+		'Sign in with your work account.',
+		'See every platform you can open.',
+		'Switch any time, without signing in again.'
+	],
+
+	// Footer
+	securityNote: 'Authorised users only. Sign-ins are logged.',
+	// The address itself is shown, so people can copy it without opening a mail app
+	supportLabel: 'contact@lumora.capital',
+	supportUrl: 'mailto:contact@lumora.capital',
+	// Footer reads "© <year> <holder>", with only the holder linked
+	copyright: `© ${new Date().getFullYear()}`,
+	copyrightHolder: 'Lumora Capital Solutions',
+	copyrightUrl: 'https://lumora.capital/',
 
 	// Magic link messaging
-	magicLinkTitle: 'Sign In with Email',
-	magicLinkDescription:
-		'Enter your email address and we will send you a secure, one-time link to sign in. No password needed.',
-	magicLinkSuccessTitle: 'Check Your Inbox',
+	magicLinkSuccessTitle: 'Check your inbox',
 	// Sent only to an active account, and the API answers the same either way so the form cannot
 	// reveal who has one: say so, rather than promising an email that may never come.
 	magicLinkSuccessDescription:
