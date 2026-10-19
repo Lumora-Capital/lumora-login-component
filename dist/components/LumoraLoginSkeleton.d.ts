@@ -3,6 +3,7 @@ import { BrandingConfig, ColorMode, PlatformId } from '../types';
 export interface LumoraLoginSkeletonProps {
     defaultColorMode?: ColorMode;
     defaultPlatform?: PlatformId;
+    showPlatformSelector?: boolean;
     branding?: BrandingConfig;
 }
 /**
