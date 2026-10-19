@@ -22,7 +22,7 @@ describe('LumoraLoginSkeleton', () => {
 	it("should open in the user's saved mode and platform", () => {
 		localStorage.setItem('lumora_color_mode', 'dark');
 		localStorage.setItem('lumora_platform', 'polymer');
-		render(<LumoraLoginSkeleton defaultColorMode="light" />);
+		render(<LumoraLoginSkeleton defaultColorMode="light" showPlatformSelector />);
 
 		const status = screen.getByTestId('lumora-login-skeleton');
 		expect(status).toHaveAttribute('data-mode', 'dark');
@@ -31,9 +31,16 @@ describe('LumoraLoginSkeleton', () => {
 
 	it("should prefer the host's platform, as LumoraLogin does", () => {
 		localStorage.setItem('lumora_platform', 'polymer');
-		render(<LumoraLoginSkeleton defaultPlatform="xpdite" />);
+		render(<LumoraLoginSkeleton defaultPlatform="xpdite" showPlatformSelector />);
 
 		expect(screen.getByTestId('lumora-login-skeleton')).toHaveAttribute('data-platform', 'xpdite');
+	});
+
+	it('should stay on Centra without the platform selector', () => {
+		localStorage.setItem('lumora_platform', 'polymer');
+		render(<LumoraLoginSkeleton defaultPlatform="xpdite" />);
+
+		expect(screen.getByTestId('lumora-login-skeleton')).toHaveAttribute('data-platform', 'centra');
 	});
 
 	it('should fall back to the host mode, then light, without a saved choice', () => {
@@ -48,7 +55,7 @@ describe('LumoraLoginSkeleton', () => {
 		localStorage.setItem('lumora_color_mode', 'dark');
 		localStorage.setItem('lumora_platform', 'xpdite');
 		const container = document.createElement('div');
-		container.innerHTML = renderToString(<LumoraLoginSkeleton />);
+		container.innerHTML = renderToString(<LumoraLoginSkeleton showPlatformSelector />);
 		const status = container.querySelector('[data-testid="lumora-login-skeleton"]')!;
 
 		// Run the inline script as the browser would while parsing server HTML

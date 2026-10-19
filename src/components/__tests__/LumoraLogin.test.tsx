@@ -364,10 +364,43 @@ describe('LumoraLogin Component', () => {
 	});
 
 	describe('Platform Selection', () => {
+		// The selector is hidden unless the host turns it on
+		const createSelectorProps = (overrides: Partial<LumoraLoginProps> = {}) =>
+			createMockProps({ showPlatformSelector: true, ...overrides });
+
+		it('should hide the selector and stay on Centra by default', async () => {
+			const user = userEvent.setup();
+			const tokens = { accessToken: 'access', refreshToken: 'refresh' };
+			const mockUser = { id: '1', email: 'test@example.com' };
+			jest.spyOn(authService, 'loginWithPasskey').mockResolvedValue({ tokens, user: mockUser });
+			localStorage.setItem('lumora_platform', 'polymer');
+			const props = createMockProps({
+				defaultPlatform: 'xpdite',
+				showOverview: true,
+				enablePasskeySignIn: true
+			});
+			renderWithTheme(props);
+
+			expect(screen.queryByText('Where would you like to start?')).not.toBeInTheDocument();
+			['Centra', 'XPdite', 'Polymer'].forEach(name =>
+				expect(screen.queryByRole('button', { name })).not.toBeInTheDocument()
+			);
+			expect(localStorage.getItem('lumora_platform')).toBe('centra');
+
+			await user.click(screen.getByRole('button', { name: 'Sign in with passkey' }));
+			await waitFor(() => {
+				expect(props.onLoginSuccess).toHaveBeenCalledWith({
+					user: mockUser,
+					tokens,
+					platform: 'centra'
+				});
+			});
+		});
+
 		it('should start on Centra and switch the hero when another platform is chosen', async () => {
 			const user = userEvent.setup();
 			const onPlatformChange = jest.fn();
-			renderWithTheme(createMockProps({ onPlatformChange }));
+			renderWithTheme(createSelectorProps({ onPlatformChange }));
 
 			// Centra is selected on a first visit, and stored for the callback page
 			expect(screen.getByRole('button', { name: 'Centra' })).toHaveAttribute(
@@ -394,7 +427,7 @@ describe('LumoraLogin Component', () => {
 		it('should keep the platform when the selected one is clicked again', async () => {
 			const user = userEvent.setup();
 			const onPlatformChange = jest.fn();
-			renderWithTheme(createMockProps({ onPlatformChange }));
+			renderWithTheme(createSelectorProps({ onPlatformChange }));
 
 			await user.click(screen.getByRole('button', { name: 'Centra' }));
 
@@ -408,7 +441,7 @@ describe('LumoraLogin Component', () => {
 		it('should open on the overview with showOverview, and return to it on a second click', async () => {
 			const user = userEvent.setup();
 			localStorage.setItem('lumora_platform', 'polymer');
-			renderWithTheme(createMockProps({ showOverview: true }));
+			renderWithTheme(createSelectorProps({ showOverview: true }));
 
 			// No platform selected, the last choice ignored, sign-ins land in Centra
 			const overviewHero = () =>
@@ -431,7 +464,7 @@ describe('LumoraLogin Component', () => {
 		});
 
 		it('should follow showOverview when the host changes it', () => {
-			const props = createMockProps({ defaultPlatform: 'polymer' });
+			const props = createSelectorProps({ defaultPlatform: 'polymer' });
 			const { rerender } = renderWithTheme(props);
 			const overviewHero = () =>
 				screen.queryAllByRole('complementary', { name: 'Lumora platforms overview' });
@@ -457,7 +490,7 @@ describe('LumoraLogin Component', () => {
 
 		it("should start on the user's last platform over Centra", () => {
 			localStorage.setItem('lumora_platform', 'polymer');
-			renderWithTheme(createMockProps());
+			renderWithTheme(createSelectorProps());
 
 			expect(screen.getByRole('button', { name: 'Polymer' })).toHaveAttribute(
 				'aria-pressed',
@@ -470,7 +503,7 @@ describe('LumoraLogin Component', () => {
 			const tokens = { accessToken: 'access', refreshToken: 'refresh' };
 			const mockUser = { id: '1', email: 'test@example.com' };
 			jest.spyOn(authService, 'loginWithPasskey').mockResolvedValue({ tokens, user: mockUser });
-			const props = createMockProps({ enablePasskeySignIn: true });
+			const props = createSelectorProps({ enablePasskeySignIn: true });
 			renderWithTheme(props);
 
 			await user.click(screen.getByRole('button', { name: 'Polymer' }));
@@ -489,7 +522,7 @@ describe('LumoraLogin Component', () => {
 
 		it('should draw a supplied screenshot instead of the placeholder', async () => {
 			renderWithTheme(
-				createMockProps({
+				createSelectorProps({
 					defaultPlatform: 'centra',
 					platformAssets: { centra: { screenshot: 'https://example.com/centra.png' } }
 				})
@@ -507,7 +540,7 @@ describe('LumoraLogin Component', () => {
 		it('should swap to the dark screenshot when switched to dark mode', async () => {
 			const user = userEvent.setup();
 			renderWithTheme(
-				createMockProps({
+				createSelectorProps({
 					defaultPlatform: 'centra',
 					defaultColorMode: 'light',
 					platformAssets: {

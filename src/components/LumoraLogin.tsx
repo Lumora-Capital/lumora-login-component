@@ -53,6 +53,7 @@ const LumoraLogin: React.FC<LumoraLoginProps> = ({
 	showErrors = true,
 	defaultPlatform,
 	showOverview = false,
+	showPlatformSelector = false,
 	onPlatformChange,
 	platformAssets,
 	defaultColorMode,
@@ -68,10 +69,17 @@ const LumoraLogin: React.FC<LumoraLoginProps> = ({
 
 	// The selected platform: the host's default, else the user's last choice, else Centra.
 	// With showOverview the page opens on the ecosystem overview instead, with none selected.
-	const [platform, setPlatform] = useState<PlatformId | null>(() =>
-		showOverview
+	// Without the selector the page is always Centra.
+	const getStartPlatform = (): PlatformId | null => {
+		if (!showPlatformSelector) {
+			return DEFAULT_PLATFORM;
+		}
+		return showOverview
 			? null
-			: (defaultPlatform ?? PlatformStorage.get() ?? DEFAULT_PLATFORM)
+			: (defaultPlatform ?? PlatformStorage.get() ?? DEFAULT_PLATFORM);
+	};
+	const [platform, setPlatform] = useState<PlatformId | null>(
+		getStartPlatform
 	);
 
 	// Turning showOverview on later returns to the overview; turning it off selects the starting
@@ -79,11 +87,7 @@ const LumoraLogin: React.FC<LumoraLoginProps> = ({
 	const [overviewShown, setOverviewShown] = useState(showOverview);
 	if (overviewShown !== showOverview) {
 		setOverviewShown(showOverview);
-		setPlatform(
-			showOverview
-				? null
-				: (defaultPlatform ?? PlatformStorage.get() ?? DEFAULT_PLATFORM)
-		);
+		setPlatform(getStartPlatform());
 	}
 
 	// Where a sign-in lands: the selected platform, else (on the overview) Centra
@@ -367,14 +371,16 @@ const LumoraLogin: React.FC<LumoraLoginProps> = ({
 				onToggleColorMode={toggleColorMode}
 			/>
 
-			<PlatformSelector
-				theme={theme}
-				value={platform}
-				platformAssets={platformAssets}
-				disabled={isBusy}
-				allowClear={showOverview}
-				onChange={handlePlatformChange}
-			/>
+			{showPlatformSelector && (
+				<PlatformSelector
+					theme={theme}
+					value={platform}
+					platformAssets={platformAssets}
+					disabled={isBusy}
+					allowClear={showOverview}
+					onChange={handlePlatformChange}
+				/>
+			)}
 
 			{showErrors && error && (
 				<Alert

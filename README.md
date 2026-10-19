@@ -230,6 +230,7 @@ When enabled, a reCAPTCHA Enterprise token is requested before a magic link is s
 | `showErrors`            | `boolean`                                                             | ❌       | `true`  | Draw errors in the card; `false` when the host shows `onLoginError` itself |
 | `enableRecaptcha`       | `boolean`                                                             | ❌       | `false` | Verify reCAPTCHA before sending magic links         |
 | `recaptchaSiteKey`      | `string`                                                              | ❌       | -       | reCAPTCHA site key (required with reCAPTCHA)        |
+| `showPlatformSelector`  | `boolean`                                                             | ❌       | `false` | Show the "Where would you like to start?" selector. Off: the page is always Centra and the platform props below are ignored |
 | `defaultPlatform`       | `PlatformId`                                                          | ❌       | last choice, else `'centra'` | Platform selected on load (`'centra'`, `'xpdite'`, `'polymer'`) |
 | `showOverview`          | `boolean`                                                             | ❌       | `false` | Open on the ecosystem overview with no platform selected; clicking the selected platform returns to it |
 | `onPlatformChange`      | `(platform: PlatformId) => void`                                      | ❌       | -       | Called when the user picks another platform         |
@@ -241,6 +242,8 @@ When enabled, a reCAPTCHA Enterprise token is requested before a magic link is s
 OAuth and magic link sign-ins finish on the callback page, so handle their success in `useAuthCallback`. Its `onSuccess(tokens, user, platform)` receives the platform chosen before the redirect (also readable with `PlatformStorage.get()`).
 
 ## Layout and Platforms
+
+The platform selector is hidden for now: without `showPlatformSelector` the page always opens on Centra, and `defaultPlatform`, `showOverview` and the user's last choice are ignored. The rest of this section describes the page with `showPlatformSelector` on.
 
 `LumoraLogin` renders a full-page split layout: the sign-in panel on the left and a hero on the right (hidden below the `md` breakpoint). A platform is always selected under "Where would you like to start?" (the host's `defaultPlatform`, else the user's last choice, else Centra), so every sign-in knows where to land; choosing the selected one again keeps it. The hero shows that platform's colours, headline and screenshot, and the accent colour of the sign-in panel follows.
 

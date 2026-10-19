@@ -96,6 +96,9 @@ export interface LumoraLoginProps {
 	showErrors?: boolean;
 	
 	// Platform selection ("Where would you like to start?")
+	// Show the platform selector. Off by default: the page is then always Centra, and
+	// defaultPlatform, showOverview and the user's last choice are ignored.
+	showPlatformSelector?: boolean;
 	// Platform selected on load; without one, the user's last choice, else Centra
 	defaultPlatform?: PlatformId;
 	// Open on the ecosystem overview with no platform selected (defaultPlatform and the last

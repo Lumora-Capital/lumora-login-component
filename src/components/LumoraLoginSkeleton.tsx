@@ -33,6 +33,7 @@ export interface LumoraLoginSkeletonProps {
 	// Same as LumoraLogin's: pass them so the skeleton opens in the mode and platform the page will
 	defaultColorMode?: ColorMode;
 	defaultPlatform?: PlatformId;
+	showPlatformSelector?: boolean;
 	branding?: BrandingConfig;
 }
 
@@ -164,9 +165,12 @@ const ControlBone: React.FC<{ sx?: object }> = ({ sx }) => (
  */
 const LumoraLoginSkeleton: React.FC<LumoraLoginSkeletonProps> = ({
 	defaultColorMode,
-	defaultPlatform,
+	defaultPlatform: hostPlatform,
+	showPlatformSelector = false,
 	branding
 }) => {
+	// Without the selector the page is always Centra
+	const defaultPlatform = showPlatformSelector ? hostPlatform : DEFAULT_PLATFORM;
 	const brandConfig = getBrandingConfig(branding);
 	const theme = getVariableTheme(brandConfig);
 	const rootRef = useRef<HTMLDivElement>(null);
@@ -279,23 +283,25 @@ const LumoraLoginSkeleton: React.FC<LumoraLoginSkeletonProps> = ({
 				</Box>
 
 				{/* Platform selector */}
-				<Box>
-					<Bone width="58%" height={12} sx={{ mb: 1.5 }} />
-					<Box
-						sx={{
-							display: 'flex',
-							gap: 0.5,
-							p: 1,
-							borderRadius: '12px',
-							backgroundColor: theme.surface,
-							border: `1px solid ${theme.border}`
-						}}
-					>
-						{[0, 1, 2].map(index => (
-							<Bone key={index} radius="8px" sx={{ flex: 1, ...CONTROL_HEIGHT }} />
-						))}
+				{showPlatformSelector && (
+					<Box>
+						<Bone width="58%" height={12} sx={{ mb: 1.5 }} />
+						<Box
+							sx={{
+								display: 'flex',
+								gap: 0.5,
+								p: 1,
+								borderRadius: '12px',
+								backgroundColor: theme.surface,
+								border: `1px solid ${theme.border}`
+							}}
+						>
+							{[0, 1, 2].map(index => (
+								<Bone key={index} radius="8px" sx={{ flex: 1, ...CONTROL_HEIGHT }} />
+							))}
+						</Box>
 					</Box>
-				</Box>
+				)}
 
 				{/* Google / Microsoft */}
 				<Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
