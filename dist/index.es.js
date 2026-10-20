@@ -415,7 +415,7 @@ const ra = () => ({
       heroBg: "#0f2a24"
     },
     // Dark art is made from the light by scripts/dark-dashboards.mjs
-    loadScreenshot: (e) => (e === "dark" ? import("./centra-dark-CrCj8Iej.js") : import("./centra-B7uv4jxP.js")).then((t) => t.default)
+    loadScreenshot: (e) => (e === "dark" ? import("./centra-dark-C8ZVwn3t.js") : import("./centra-BoXGfEzi.js")).then((t) => t.default)
   },
   {
     id: "xpdite",
