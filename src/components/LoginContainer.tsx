@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Box } from '@mui/material';
 import { ThemeProvider, createTheme, useTheme } from '@mui/material/styles';
 import { LoginTheme, SHORT_SCREEN } from '../utils/loginTheme';
@@ -11,6 +11,10 @@ import {
 
 // The layout is sized in 8px spacing units; the host's theme may use another unit (Nexa uses 4)
 const LUMORA_SPACING = createTheme({ spacing: 8 }).spacing;
+
+// Runs on the client only; useLayoutEffect warns during server rendering on React 18
+const useIsomorphicLayoutEffect =
+	typeof window === 'undefined' ? useEffect : useLayoutEffect;
 
 // Largest the login layout grows; bigger screens get page background around it
 const LAYOUT_MAX_WIDTH = 1760;
@@ -53,6 +57,9 @@ interface LoginContainerProps {
 	hero: React.ReactNode;
 	// Banner shown after the first section on phones and tablets, in place of the hero
 	mobileHero?: React.ReactNode;
+	// Appear in place, with no entrance animation: this replaces a skeleton (LumoraLogin's
+	// animateEntrance). Read when it mounts only.
+	skipEntrance?: boolean;
 }
 
 /**
@@ -63,7 +70,8 @@ const LoginContainer: React.FC<LoginContainerProps> = ({
 	children,
 	footer,
 	hero,
-	mobileHero
+	mobileHero,
+	skipEntrance = false
 }) => {
 	// Keys from toArray follow each child's slot, so a section appearing later (an error)
 	// mounts and fades up on its own without remounting the others
@@ -94,11 +102,25 @@ const LoginContainer: React.FC<LoginContainerProps> = ({
 		return () => cancelAnimationFrame(frame);
 	}, [isSwitchingMode, shownMode]);
 
+	// In place of a skeleton, every entrance animation jumps to its end before the first paint, so
+	// the page fills in where the skeleton stood rather than going blank and building up again.
+	// What mounts later (an error, another platform's hero, its art) still animates.
+	const rootRef = useRef<HTMLDivElement>(null);
+	const skipEntranceOnMount = useRef(skipEntrance);
+	useIsomorphicLayoutEffect(() => {
+		if (!skipEntranceOnMount.current) return;
+		for (const animation of rootRef.current?.getAnimations?.({ subtree: true }) ?? []) {
+			// A spinner never ends; there is none on the first paint, but never finish one
+			if (animation.effect?.getTiming().iterations !== Infinity) animation.finish();
+		}
+	}, []);
+
 	return (
 		// Own spacing unit, so the layout looks the same in every host app.
 		// Full-width page background; the layout inside is capped and centred on wide screens
 		<ThemeProvider theme={lumoraTheme}>
 			<Box
+				ref={rootRef}
 				data-mode-switching={isSwitchingMode || undefined}
 				sx={{
 					minHeight: '100vh',

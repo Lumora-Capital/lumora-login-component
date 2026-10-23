@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { SubmitHandler } from 'react-hook-form';
 import { Box, Alert, Button, CircularProgress, Divider } from '@mui/material';
 import { Google as GoogleIcon } from '@mui/icons-material';
@@ -58,8 +58,16 @@ const LumoraLogin: React.FC<LumoraLoginProps> = ({
 	platformAssets,
 	defaultColorMode,
 	onColorModeChange,
-	branding
+	branding,
+	animateEntrance = true
 }) => {
+	// Only the first screen can stand in for a skeleton; a later one (the link sent) animates in
+	const isFirstScreen = useRef(true);
+	useEffect(() => {
+		isFirstScreen.current = false;
+	}, []);
+	const skipEntrance = !animateEntrance && isFirstScreen.current;
+
 	// Component state management
 	const [loginState, setLoginState] = useState<LoginState>('idle');
 	const [error, setError] = useState<ErrorState | null>(null);
@@ -331,6 +339,7 @@ const LumoraLogin: React.FC<LumoraLoginProps> = ({
 				theme={theme}
 				hero={hero}
 				mobileHero={mobileHero}
+				skipEntrance={skipEntrance}
 				footer={<LoginFooter brandConfig={brandConfig} theme={theme} />}
 			>
 				<BrandingHeader
@@ -363,6 +372,7 @@ const LumoraLogin: React.FC<LumoraLoginProps> = ({
 			theme={theme}
 			hero={hero}
 			mobileHero={mobileHero}
+			skipEntrance={skipEntrance}
 			footer={<LoginFooter brandConfig={brandConfig} theme={theme} />}
 		>
 			<BrandingHeader

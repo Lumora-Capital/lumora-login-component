@@ -155,6 +155,49 @@ describe('LumoraLogin Component', () => {
 		});
 	});
 
+	describe('Entrance', () => {
+		// jsdom runs no CSS animations: one stand-in per element that asks, so a test can see which
+		// were finished at once and which were left to play
+		let animations: Array<{ finish: jest.Mock; effect: { getTiming: () => { iterations: number } } }>;
+		beforeEach(() => {
+			animations = [];
+			Object.defineProperty(Element.prototype, 'getAnimations', {
+				configurable: true,
+				value: function getAnimations() {
+					const animation = { finish: jest.fn(), effect: { getTiming: () => ({ iterations: 1 }) } };
+					animations.push(animation);
+					return [animation];
+				}
+			});
+		});
+		afterEach(() => {
+			delete (Element.prototype as { getAnimations?: unknown }).getAnimations;
+		});
+
+		it('appears in place, with no entrance, when it replaces a skeleton', () => {
+			renderWithTheme(createMockProps({ animateEntrance: false }));
+			expect(animations).toHaveLength(1);
+			expect(animations[0].finish).toHaveBeenCalled();
+		});
+
+		it('animates in by default', () => {
+			renderWithTheme(createMockProps());
+			expect(animations).toHaveLength(0);
+		});
+
+		it('still animates the screen that follows (the link sent)', async () => {
+			const user = userEvent.setup();
+			jest.spyOn(authService, 'requestMagicLink').mockResolvedValue();
+			renderWithTheme(createMockProps({ animateEntrance: false, enableMagicLinkSignIn: true }));
+			await user.type(screen.getByLabelText('Work email'), 'test@example.com');
+			await user.click(screen.getByRole('button', { name: 'Magic Link' }));
+
+			await screen.findByText('Check your inbox');
+			// Only the first screen's
+			expect(animations).toHaveLength(1);
+		});
+	});
+
 	describe('OAuth Sign-In', () => {
 		beforeEach(() => {
 			jest.useFakeTimers();

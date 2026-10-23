@@ -94,6 +94,10 @@ export interface LumoraLoginProps {
 	// false when the host shows onLoginError itself (e.g. a snackbar): the component then draws no
 	// error alert and no "Try Again", so the message is not shown twice
 	showErrors?: boolean;
+
+	// false when the form replaces a LumoraLoginSkeleton the host showed: it then appears in
+	// place, rather than the page going blank and fading up a second time. Default true.
+	animateEntrance?: boolean;
 	
 	// Platform selection ("Where would you like to start?")
 	// Show the platform selector. Off by default: the page is then always Centra, and
