@@ -70,6 +70,7 @@ export interface LumoraLoginProps {
     enableMagicLinkSignIn?: boolean;
     enablePasskeySignIn?: boolean;
     showErrors?: boolean;
+    animateEntrance?: boolean;
     showPlatformSelector?: boolean;
     defaultPlatform?: PlatformId;
     showOverview?: boolean;

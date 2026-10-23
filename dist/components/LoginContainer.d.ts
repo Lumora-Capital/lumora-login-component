@@ -6,6 +6,7 @@ interface LoginContainerProps {
     footer: React.ReactNode;
     hero: React.ReactNode;
     mobileHero?: React.ReactNode;
+    skipEntrance?: boolean;
 }
 /**
  * Full-page split layout: sign-in panel on the left, hero on the right
