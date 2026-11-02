@@ -1,0 +1,302 @@
+/*
+ * Stylesheet of @volenday/lumora-login-component, published as dist/lumora-login.css
+ * ("@volenday/lumora-login-component/styles.css").
+ *
+ * Theme and utilities only: no preflight, so importing it never resets the host page. Every utility
+ * carries the `ll:` prefix (`ll:flex`, `ll:md:grid`), so it cannot collide with a host's own
+ * Tailwind build, whose breakpoints differ (these are the 600/900/1200/1536px ones the MUI version
+ * was laid out on).
+ *
+ * Colours come from CSS variables. The page's own palette (--lumora-*) is set inline on the
+ * component's root from getLoginTheme, because it follows the branding prop, the colour mode and the
+ * selected platform. The form controls read Nexa's variable names (--input-*, --ui-destructive,
+ * --ui-tooltip-*) with Nexa's values as fallbacks, so the fields look like Nexa's in Nexa and the same
+ * in an app that defines none of them.
+ */
+
+@layer theme, base, components, utilities;
+
+@import 'tailwindcss/theme.css' layer(theme) prefix(ll);
+@import 'tailwindcss/utilities.css' layer(utilities) source(none);
+
+@source './components';
+@source './utils';
+
+/* Laptop-height screens: spacing tightens so the sign-in panel fits without scrolling */
+@custom-variant short (@media (max-height: 920px));
+
+/* The component's own colour mode (its toggle), which it writes on its root */
+@custom-variant dark (&:where(.lumora-login[data-color-scheme='dark'], .lumora-login[data-color-scheme='dark'] *));
+
+@theme {
+	/* px, not rem: the layout looks the same whatever root font size the host sets */
+	--spacing: 4px;
+
+	/* The breakpoints the layout was designed on (MUI's) */
+	--breakpoint-sm: 600px;
+	--breakpoint-md: 900px;
+	--breakpoint-lg: 1200px;
+	--breakpoint-xl: 1536px;
+}
+
+@theme inline {
+	--font-heading: var(--lumora-heading-font);
+	--font-body: var(--lumora-body-font);
+
+	/* Page palette, from getLoginTheme (set inline on the root) */
+	--color-page: var(--lumora-page-bg);
+	--color-surface: var(--lumora-surface);
+	--color-line: var(--lumora-border);
+	--color-heading: var(--lumora-heading);
+	--color-welcome: var(--lumora-welcome-title);
+	--color-welcome-accent: var(--lumora-welcome-accent);
+	--color-body: var(--lumora-text);
+	--color-tagline: var(--lumora-tagline);
+	--color-label: var(--lumora-label);
+	--color-divider: var(--lumora-divider);
+	--color-brand-text: var(--lumora-brand-text);
+	--color-eyebrow: var(--lumora-eyebrow);
+	--color-logo: var(--lumora-logo);
+	--color-error-bg: var(--lumora-error-bg);
+	--color-error-border: var(--lumora-error-border);
+	--color-error-text: var(--lumora-error-text);
+	--color-error-icon: var(--lumora-error-icon);
+	--color-hero-text: var(--lumora-hero-text);
+	--color-hero-headline: var(--lumora-hero-headline);
+	--color-hero-headline-accent: var(--lumora-hero-headline-accent);
+	--color-hero-bg: var(--lumora-hero-bg);
+	--color-hero-grid: var(--lumora-hero-grid);
+	--color-muted: var(--lumora-muted);
+	--color-accent: var(--lumora-accent);
+	--color-accent-hover: var(--lumora-accent-hover);
+	--color-accent-foreground: var(--lumora-button-text);
+
+	/* Skeleton */
+	--color-bone: var(--lumora-bone);
+	--color-hero: var(--lumora-hero);
+
+	/* Form controls: Nexa's tokens (see the .lumora-login rules below) */
+	--color-input: var(--lumora-input-border);
+	--color-input-hover: var(--lumora-input-border-hover);
+	--color-input-bg: var(--lumora-input-bg);
+	--color-input-foreground: var(--lumora-input-text);
+	--color-placeholder: var(--lumora-input-placeholder);
+	--color-input-disabled: var(--lumora-input-disabled-bg);
+	--color-input-disabled-border: var(--lumora-input-disabled-border);
+	--color-input-disabled-foreground: var(--lumora-input-disabled-text);
+	--color-destructive: var(--lumora-destructive);
+
+	/* Tooltips render in a portal, outside the root, so they read Nexa's names directly */
+	--color-tooltip: var(--ui-tooltip-bg, #2f3640);
+	--color-tooltip-foreground: var(--ui-tooltip-fg, #ffffff);
+}
+
+/*
+ * Form control tokens. Nexa's light values by default; the host's own --input-* values when the host
+ * page is in the same mode as the component (a dark Nexa page holds dark values, which a light form
+ * must not take).
+ */
+.lumora-login {
+	--lumora-input-bg: #ffffff;
+	--lumora-input-border: #8a939b;
+	--lumora-input-border-hover: #5d737e;
+	--lumora-input-text: #273035;
+	--lumora-input-placeholder: #848993;
+	--lumora-input-disabled-bg: #eef1f3;
+	--lumora-input-disabled-border: #c7cdd2;
+	--lumora-input-disabled-text: #55636b;
+	--lumora-destructive: #c62828;
+}
+
+html:not([data-color-scheme='dark'])
+	.lumora-login:not([data-color-scheme='dark']) {
+	--lumora-input-bg: var(--input-bg, #ffffff);
+	--lumora-input-border: var(--input-border, #8a939b);
+	--lumora-input-border-hover: var(--input-border-hover, #5d737e);
+	--lumora-input-text: var(--input-text, #273035);
+	--lumora-input-placeholder: var(--input-placeholder, #848993);
+	--lumora-input-disabled-bg: var(--input-disabled-bg, #eef1f3);
+	--lumora-input-disabled-border: var(--input-disabled-border, #c7cdd2);
+	--lumora-input-disabled-text: var(--input-disabled-text, #55636b);
+	--lumora-destructive: var(--ui-destructive, #c62828);
+}
+
+.lumora-login[data-color-scheme='dark'] {
+	--lumora-input-bg: transparent;
+	--lumora-input-border: rgba(255, 255, 255, 0.36);
+	--lumora-input-border-hover: rgba(255, 255, 255, 0.56);
+	--lumora-input-text: rgba(255, 255, 255, 0.92);
+	--lumora-input-placeholder: rgba(255, 255, 255, 0.5);
+	--lumora-input-disabled-bg: rgba(255, 255, 255, 0.04);
+	--lumora-input-disabled-border: rgba(255, 255, 255, 0.16);
+	--lumora-input-disabled-text: rgba(255, 255, 255, 0.66);
+	--lumora-destructive: #f87171;
+}
+
+html[data-color-scheme='dark'] .lumora-login[data-color-scheme='dark'] {
+	--lumora-input-bg: var(--input-bg, transparent);
+	--lumora-input-border: var(--input-border, rgba(255, 255, 255, 0.36));
+	--lumora-input-border-hover: var(
+		--input-border-hover,
+		rgba(255, 255, 255, 0.56)
+	);
+	--lumora-input-text: var(--input-text, rgba(255, 255, 255, 0.92));
+	--lumora-input-placeholder: var(
+		--input-placeholder,
+		rgba(255, 255, 255, 0.5)
+	);
+	--lumora-input-disabled-bg: var(
+		--input-disabled-bg,
+		rgba(255, 255, 255, 0.04)
+	);
+	--lumora-input-disabled-border: var(
+		--input-disabled-border,
+		rgba(255, 255, 255, 0.16)
+	);
+	--lumora-input-disabled-text: var(
+		--input-disabled-text,
+		rgba(255, 255, 255, 0.66)
+	);
+	--lumora-destructive: var(--ui-destructive, #f87171);
+}
+
+/*
+ * The few resets the component needs, scoped to it (no global preflight). In the base layer and
+ * behind :where(), so every utility beats them.
+ */
+@layer base {
+	:where(.lumora-login),
+	:where(.lumora-login) *,
+	:where(.lumora-login) ::before,
+	:where(.lumora-login) ::after {
+		box-sizing: border-box;
+	}
+
+	:where(.lumora-login) :where(h1, h2, p, ol, li, figure) {
+		margin: 0;
+		padding: 0;
+	}
+
+	:where(.lumora-login) :where(button, input) {
+		margin: 0;
+		padding: 0;
+		border: 0 solid;
+		background: none;
+		color: inherit;
+		font: inherit;
+		letter-spacing: inherit;
+		text-transform: inherit;
+	}
+
+	:where(.lumora-login) :where(button) {
+		cursor: pointer;
+	}
+
+	:where(.lumora-login) :where(button:disabled) {
+		cursor: default;
+	}
+}
+
+@layer components {
+	/* Light / dark switch: colours change at once on every element (see the comment in utils/motion.ts) */
+	.lumora-login[data-mode-switching],
+	.lumora-login[data-mode-switching] *,
+	.lumora-login[data-mode-switching] *::before,
+	.lumora-login[data-mode-switching] *::after {
+		transition:
+			opacity 350ms cubic-bezier(0.4, 0, 0.2, 1),
+			transform 350ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+	}
+
+	/* Turns motion off for users who ask their system for reduced motion */
+	@media (prefers-reduced-motion: reduce) {
+		.lumora-login *,
+		.lumora-login *::before,
+		.lumora-login *::after {
+			animation-duration: 1ms !important;
+			animation-delay: 0ms !important;
+			transition-duration: 1ms !important;
+		}
+	}
+
+	/* Faint square grid behind the hero (colour: --lumora-grid-color), drawn in currentColor so its
+	   colour fades with the theme (a gradient's own colours cannot transition) */
+	.lumora-grid::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		color: var(--lumora-grid-color);
+		transition: color 350ms cubic-bezier(0.4, 0, 0.2, 1);
+		background-image:
+			linear-gradient(currentColor 1px, transparent 1px),
+			linear-gradient(90deg, currentColor 1px, transparent 1px);
+		background-size: 32px 32px;
+	}
+
+	/* Skeleton bone: a soft wave passing over it (MUI Skeleton's "wave") */
+	.lumora-bone {
+		position: relative;
+		overflow: hidden;
+	}
+
+	.lumora-bone::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		transform: translateX(-100%);
+		background: linear-gradient(
+			90deg,
+			transparent,
+			rgba(255, 255, 255, 0.14),
+			transparent
+		);
+		animation: lumora-wave 2s linear 0.5s infinite;
+	}
+}
+
+/* Text and cards rising into place */
+@keyframes lumora-fade-up {
+	from {
+		opacity: 0;
+		transform: translateY(12px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+/* Platform screenshot sliding in from the bottom-right */
+@keyframes lumora-slide-in-frame {
+	from {
+		opacity: 0;
+		transform: translate(16px, 16px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+/* Stacked windows on the default hero rising from below */
+@keyframes lumora-rise-in {
+	from {
+		opacity: 0;
+		transform: translateY(24px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+@keyframes lumora-wave {
+	0% {
+		transform: translateX(-100%);
+	}
+	50%,
+	100% {
+		transform: translateX(100%);
+	}
+}

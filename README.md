@@ -1,6 +1,6 @@
-# LumoraLogin Component v1.1.0
+# LumoraLogin Component v3.0.0
 
-A reusable, passwordless React TypeScript login component for the Lumora API: Google and Microsoft OAuth, magic links, and passkeys, with a responsive MUI design.
+A reusable, passwordless React TypeScript login component for the Lumora API: Google and Microsoft OAuth, magic links, and passkeys, with a responsive design built on Tailwind CSS v4 and Radix (shadcn/ui-style components).
 
 ## Features
 
@@ -10,7 +10,7 @@ A reusable, passwordless React TypeScript login component for the Lumora API: Go
 -   **Passkeys**: WebAuthn sign-in (Face ID, Touch ID, Windows Hello, security keys), plus a hook for registering passkeys
 -   **Token Management**: Automatic token refresh and localStorage-based session management
 -   **reCAPTCHA**: Optional reCAPTCHA Enterprise check before sending magic links
--   **Responsive Design**: Mobile-first design using MUI breakpoints
+-   **Responsive Design**: Mobile-first layout, shipped as one prefixed stylesheet that never resets the host page
 -   **TypeScript Support**: Full TypeScript definitions included
 -   **Customizable Branding**: Logo, colors and copy
 
@@ -21,8 +21,10 @@ A reusable, passwordless React TypeScript login component for the Lumora API: Go
 This package requires the following peer dependencies to be installed in your project:
 
 ```bash
-npm install @mui/material @emotion/react @emotion/styled react react-dom react-hook-form @hookform/resolvers yup @mui/icons-material @react-oauth/google axios
+npm install react react-dom @hookform/resolvers yup @react-oauth/google axios
 ```
+
+MUI and Emotion are no longer needed (3.0.0). The component's own UI dependencies (`radix-ui`, `lucide-react`, `class-variance-authority`, `clsx`, `tailwind-merge`, `react-hook-form`) install with it. Tailwind is **not** needed in your app: the stylesheet comes compiled.
 
 ### Install from GitHub
 
@@ -91,28 +93,34 @@ Then when prompted during installation, enter your GitHub username and Personal 
 ### Package Information
 
 -   **Package Name**: `@volenday/lumora-login-component`
--   **Version**: 1.0.4
+-   **Version**: 3.0.0
 -   **License**: MIT
 -   **Repository**: [GitHub Repository](https://github.com/Volenday/lumora-login-component)
 
-### CDN Usage
+## Usage
 
-You can also use the component via CDN:
+### Import the stylesheet
 
-```html
-<!-- UMD build -->
-<script src="https://unpkg.com/@volenday/lumora-login-component@1.0.2/dist/lumora-login.umd.js"></script>
+The component draws with a compiled stylesheet. Import it once, e.g. in your root layout or entry file:
 
-<!-- ES Module build -->
-<script type="module">
-	import { LumoraLogin } from 'https://unpkg.com/@volenday/lumora-login-component@1.0.2/dist/lumora-login.mjs';
-</script>
+```tsx
+import '@volenday/lumora-login-component/styles.css';
 ```
 
-## Usage
+(or `@import '@volenday/lumora-login-component/styles.css';` from your own CSS). Without it the page renders unstyled.
+
+What the stylesheet does and does not do:
+
+-   **No global reset**: it holds Tailwind's theme and utilities only (no preflight). Every class is prefixed `ll:` and scoped resets apply only inside the component, so it cannot change the rest of your page or clash with your own Tailwind build.
+-   **Colours** are CSS variables. The page palette (`--lumora-*`) is set on the component's root from `branding`, the colour mode and the selected platform. The form fields read Nexa's variable names (`--input-bg`, `--input-border`, `--input-border-hover`, `--input-text`, `--input-placeholder`, `--input-disabled-*`, `--ui-destructive`, `--ui-tooltip-bg`, `--ui-tooltip-fg`), falling back to Nexa's light values (and its dark values in dark mode), so they match Nexa there and look the same in apps that define none of them.
+-   **Dark mode**: the component writes its mode (toggle, saved `lumora_color_mode` choice, `defaultColorMode`, else the system) on its root as `data-color-scheme`. The host's `--input-*` values are used only while `html[data-color-scheme]` is in the same mode, so a light form on a dark page (or the reverse) keeps its own values.
+-   **Fonts** are not loaded: load Montserrat and Source Sans 3 (or set `branding.headingFontFamily` / `bodyFontFamily`).
+
+### Render it
 
 ```tsx
 import { LumoraLogin } from '@volenday/lumora-login-component';
+import '@volenday/lumora-login-component/styles.css';
 
 const LoginPage = () => (
 	<LumoraLogin
@@ -238,6 +246,7 @@ When enabled, a reCAPTCHA Enterprise token is requested before a magic link is s
 | `defaultColorMode`      | `'light' \| 'dark'`                                                   | ❌       | system  | Mode for users who have not used the toggle; leave unset to follow the operating system |
 | `onColorModeChange`     | `(mode: ColorMode) => void`                                           | ❌       | -       | Called when the user flips the light / dark toggle  |
 | `branding`              | `BrandingConfig`                                                      | ❌       | -       | Logo, colors and copy                               |
+| `className`             | `string`                                                              | ❌       | -       | Extra classes on the page root (also on `LumoraLoginSkeleton`) |
 
 OAuth and magic link sign-ins finish on the callback page, so handle their success in `useAuthCallback`. Its `onSuccess(tokens, user, platform)` receives the platform chosen before the redirect (also readable with `PlatformStorage.get()`).
 
@@ -373,13 +382,21 @@ Open `http://localhost:3001`. The settings button (bottom right) lets you toggle
 ## Development
 
 -   `npm run dev`: start the demo
--   `npm run build`: build the library into `dist/`
+-   `npm run build`: build the library into `dist/` (`vite build`, then `build:css` compiles `src/styles.css` to `dist/lumora-login.css`)
 -   `npm run type-check`: TypeScript check
 -   `npm test`: run the Jest suite
 
 ## Changelog
 
-### Unreleased
+### v3.0.0
+
+-   **BREAKING**: MUI and Emotion removed. The UI is Tailwind CSS v4 + Radix (shadcn/ui-style) with lucide icons; `@mui/material`, `@mui/icons-material`, `@emotion/react` and `@emotion/styled` are no longer peer dependencies
+-   **BREAKING**: Import the stylesheet: `import '@volenday/lumora-login-component/styles.css'`
+-   **NEW**: `className` on `LumoraLogin` and `LumoraLoginSkeleton`
+-   **CHANGED**: The work email field uses Nexa's input tokens (`--input-*`), and the validation message Nexa's `--ui-destructive`
+-   Exports, props, callbacks, API calls, token storage keys, redirects and copy are unchanged
+
+### v2.0.0
 
 -   **BREAKING**: New full-page split layout (sign-in panel + platform hero) replaces the centred card
 -   **BREAKING**: Magic link is an inline work email field; the separate form screen, the `'magic-link'` login state and the `magicLinkTitle` / `magicLinkDescription` branding fields are removed

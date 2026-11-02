@@ -1,7 +1,5 @@
 import { default as React } from 'react';
-import { LoginTheme } from '../utils/loginTheme';
 interface FirstTimeCardProps {
-    theme: LoginTheme;
     title: string;
     steps: string[];
 }

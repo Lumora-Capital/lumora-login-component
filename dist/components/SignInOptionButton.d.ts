@@ -1,7 +1,5 @@
 import { default as React } from 'react';
-import { LoginTheme } from '../utils/loginTheme';
 interface SignInOptionButtonProps {
-    theme: LoginTheme;
     icon: React.ReactNode;
     label: string;
     ariaLabel?: string;

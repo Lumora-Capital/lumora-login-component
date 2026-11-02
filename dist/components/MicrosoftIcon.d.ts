@@ -1,10 +1,9 @@
 import { default as React } from 'react';
-import { SvgIconProps } from '@mui/material';
-interface MicrosoftIconProps extends SvgIconProps {
+interface MicrosoftIconProps extends React.SVGProps<SVGSVGElement> {
     monochrome?: boolean;
 }
 /**
- * Microsoft four-square logo (not available in @mui/icons-material)
+ * Microsoft four-square logo (a brand mark, so not from lucide)
  */
 declare const MicrosoftIcon: React.FC<MicrosoftIconProps>;
 export default MicrosoftIcon;

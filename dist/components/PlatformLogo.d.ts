@@ -1,8 +1,8 @@
 import { default as React } from 'react';
-import { SvgIconProps } from '@mui/material';
 import { PlatformId } from '../types';
-interface PlatformLogoProps extends SvgIconProps {
+interface PlatformLogoProps {
     platform: PlatformId;
+    className?: string;
 }
 /**
  * Centra, XPdite and Polymer marks, inlined from public/*-logo.svg

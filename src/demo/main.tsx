@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import './demo.css';
 
 // A login page should open at the top, not where the last visit left off
 window.history.scrollRestoration = 'manual';

@@ -1,7 +1,9 @@
 import { default as React } from 'react';
-import { LoginTheme } from '../utils/loginTheme';
+import { ColorMode } from '../types';
 interface LoginContainerProps {
-    theme: LoginTheme;
+    mode?: ColorMode;
+    style?: React.CSSProperties;
+    className?: string;
     children: React.ReactNode;
     footer: React.ReactNode;
     hero: React.ReactNode;

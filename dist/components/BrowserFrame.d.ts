@@ -1,11 +1,11 @@
 import { default as React } from 'react';
-import { SxProps, Theme } from '@mui/material/styles';
 interface BrowserFrameProps {
     title: string;
     barColor: string;
     screenshot?: string;
     compact?: boolean;
-    sx?: SxProps<Theme>;
+    className?: string;
+    style?: React.CSSProperties;
 }
 /**
  * Product window for the hero: the supplied dashboard artwork, or until one is supplied

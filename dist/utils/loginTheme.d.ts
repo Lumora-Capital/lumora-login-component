@@ -31,13 +31,7 @@ export interface LoginTheme {
     headingFont: string;
     bodyFont: string;
 }
-export declare const SHORT_SCREEN = "@media (max-height: 920px)";
-export declare const CONTROL_HEIGHT: {
-    readonly height: 50;
-    readonly "@media (max-height: 920px)": {
-        readonly height: 46;
-    };
-};
+export declare const CONTROL_HEIGHT = "ll:h-[50px] ll:short:h-[46px]";
 export declare const CARD_SHADOW = "0 1px 2px rgba(18, 51, 45, 0.06), 0 8px 24px rgba(18, 51, 45, 0.06)";
 /**
  * Resolve the page colours for a colour mode and the selected platform
@@ -48,20 +42,10 @@ export declare const CARD_SHADOW = "0 1px 2px rgba(18, 51, 45, 0.06), 0 8px 24px
  */
 export declare const getLoginTheme: (brandConfig: BrandingConfig, mode: ColorMode, platform: PlatformId | null) => LoginTheme;
 /**
- * Keyboard focus ring for buttons, in the accent colour
+ * The theme as CSS variables (--lumora-page-bg, --lumora-accent…), which the stylesheet's colour and
+ * font utilities read. Set on the component's root.
  * @param theme - Resolved login theme
- * @returns sx rule for MUI's focus-visible state
+ * @returns Variable name → value
  */
-export declare const focusRing: (theme: LoginTheme) => {
-    '&.Mui-focusVisible': {
-        outline: string;
-        outlineOffset: number;
-    };
-};
-/**
- * Background image for the faint square grid drawn behind the hero
- * @param lineColor - Colour of the grid lines
- * @returns CSS background-image value
- */
-export declare const gridBackground: (lineColor: string) => string;
+export declare const themeVariables: (theme: LoginTheme) => Record<string, string>;
 //# sourceMappingURL=loginTheme.d.ts.map

@@ -1,5 +1,3 @@
-import { keyframes } from '@emotion/react';
-
 // Easing for everything that moves: quick start, soft landing
 export const EASE_OUT = 'cubic-bezier(0.2, 0.7, 0.2, 1)';
 
@@ -14,7 +12,9 @@ export const COLOR_EASE = 'cubic-bezier(0.4, 0, 0.2, 1)';
  * @returns CSS transition value
  */
 export const colorTransition = (...properties: string[]): string =>
-	properties.map(property => `${property} ${COLOR_DURATION}ms ${COLOR_EASE}`).join(', ');
+	properties
+		.map(property => `${property} ${COLOR_DURATION}ms ${COLOR_EASE}`)
+		.join(', ');
 
 // Colour changes when the theme or platform switches
 export const THEME_TRANSITION = colorTransition(
@@ -24,51 +24,27 @@ export const THEME_TRANSITION = colorTransition(
 	'box-shadow'
 );
 
+// THEME_TRANSITION as utilities, for elements styled with classes
+export const THEME_TRANSITION_CLASS =
+	'll:transition-[background-color,border-color,color,box-shadow] ll:duration-[350ms] ll:ease-[cubic-bezier(0.4,0,0.2,1)]';
+
 // Logo shapes recolour through CSS variables, which do not animate; their fill and stroke do
 export const SVG_TRANSITION = colorTransition('fill', 'stroke');
 
-// Light / dark switch: colours change in one frame. A light and a dark palette are inverses, so
-// any fade between them passes a moment where text and background are the same colour, and
-// clicking the toggle mid-fade strands them there. Only motion that keeps text legible (the
-// toggle's sun and moon turning) still animates.
-export const MODE_SWITCH_TRANSITION = colorTransition('opacity', 'transform');
+// Light / dark switch: colours change in one frame (the data-mode-switching rule in styles.css). A
+// light and a dark palette are inverses, so any fade between them passes a moment where text and
+// background are the same colour, and clicking the toggle mid-fade strands them there. Only motion
+// that keeps text legible (the toggle's sun and moon turning) still animates.
 
-
+// Keyframes, declared in src/styles.css
 // Text and cards rising into place
-export const fadeUp = keyframes`
-	from {
-		opacity: 0;
-		transform: translateY(12px);
-	}
-	to {
-		opacity: 1;
-		transform: none;
-	}
-`;
+export const fadeUp = 'lumora-fade-up';
 
 // Platform screenshot sliding in from the bottom-right
-export const slideInFrame = keyframes`
-	from {
-		opacity: 0;
-		transform: translate(16px, 16px);
-	}
-	to {
-		opacity: 1;
-		transform: none;
-	}
-`;
+export const slideInFrame = 'lumora-slide-in-frame';
 
 // Stacked windows on the default hero rising from below
-export const riseIn = keyframes`
-	from {
-		opacity: 0;
-		transform: translateY(24px);
-	}
-	to {
-		opacity: 1;
-		transform: none;
-	}
-`;
+export const riseIn = 'lumora-rise-in';
 
 /**
  * Animation shorthand for an element that fades up, after a delay
@@ -78,14 +54,3 @@ export const riseIn = keyframes`
  */
 export const fadeUpAnimation = (delay = 0, duration = 500): string =>
 	`${fadeUp} ${duration}ms ${EASE_OUT} ${delay}ms both`;
-
-// Turns motion off for users who ask their system for reduced motion
-export const REDUCED_MOTION_SX = {
-	'@media (prefers-reduced-motion: reduce)': {
-		'& *, & *::before, & *::after': {
-			animationDuration: '1ms !important',
-			animationDelay: '0ms !important',
-			transitionDuration: '1ms !important'
-		}
-	}
-} as const;

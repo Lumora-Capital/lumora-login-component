@@ -1,9 +1,7 @@
 import { default as React } from 'react';
 import { BrandingConfig } from '../types';
-import { LoginTheme } from '../utils/loginTheme';
 interface LoginFooterProps {
     brandConfig: BrandingConfig;
-    theme: LoginTheme;
 }
 /**
  * Security note, support contact and copyright

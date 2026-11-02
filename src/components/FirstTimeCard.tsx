@@ -1,10 +1,8 @@
 import React from 'react';
-import { Box } from '@mui/material';
-import { LoginTheme, SHORT_SCREEN } from '../utils/loginTheme';
-import { THEME_TRANSITION } from '../utils/motion';
+import { THEME_TRANSITION_CLASS } from '../utils/motion';
+import { cn } from '../lib/utils';
 
 interface FirstTimeCardProps {
-	theme: LoginTheme;
 	title: string;
 	steps: string[];
 }
@@ -12,75 +10,39 @@ interface FirstTimeCardProps {
 /**
  * "First time here?" card with numbered onboarding steps
  */
-const FirstTimeCard: React.FC<FirstTimeCardProps> = ({ theme, title, steps }) => (
-	<Box
-		component="section"
+const FirstTimeCard: React.FC<FirstTimeCardProps> = ({ title, steps }) => (
+	<section
 		aria-labelledby="lumora-first-time-title"
-		sx={{
-			px: 2.5,
-			py: 2,
-			[SHORT_SCREEN]: { py: 1.25 },
-			borderRadius: '12px',
-			border: `1px solid ${theme.border}`,
-			backgroundColor: theme.surface,
-			transition: THEME_TRANSITION,
-			'& *': { transition: THEME_TRANSITION }
-		}}
+		className={cn(
+			'll:rounded-[12px] ll:border ll:border-line ll:bg-surface ll:px-5 ll:py-4 ll:short:py-2.5',
+			'll:[&_*]:transition-[background-color,border-color,color,box-shadow] ll:[&_*]:duration-[350ms] ll:[&_*]:ease-[cubic-bezier(0.4,0,0.2,1)]',
+			THEME_TRANSITION_CLASS
+		)}
 	>
-		<Box
-			component="h2"
+		<h2
 			id="lumora-first-time-title"
-			sx={{
-				m: 0,
-				fontFamily: theme.bodyFont,
-				fontSize: 18,
-				fontWeight: 600,
-				color: theme.heading
-			}}
+			className="ll:font-body ll:text-[18px] ll:font-semibold ll:text-heading"
 		>
 			{title}
-		</Box>
+		</h2>
 
-		<Box
-			component="ol"
-			sx={{
-				m: 0,
-				mt: 1.25,
-				p: 0,
-				listStyle: 'none',
-				display: 'grid',
-				gap: 1,
-				[SHORT_SCREEN]: { mt: 1, gap: 0.75 }
-			}}
-		>
+		<ol className="ll:mt-2.5 ll:grid ll:list-none ll:gap-2 ll:short:mt-2 ll:short:gap-1.5">
 			{steps.map((step, index) => (
-				<Box
-					component="li"
+				<li
 					key={step}
-					sx={{ display: 'flex', alignItems: 'center', gap: 1.5, fontSize: 14.5, color: theme.label }}
+					className="ll:flex ll:items-center ll:gap-3 ll:text-[14.5px] ll:text-label"
 				>
-					<Box
+					<span
 						aria-hidden
-						sx={{
-							flexShrink: 0,
-							width: 24,
-							height: 24,
-							borderRadius: '50%',
-							border: `1px solid ${theme.divider}`,
-							display: 'grid',
-							placeItems: 'center',
-							fontSize: 12,
-							fontWeight: 600,
-							color: theme.brandText
-						}}
+						className="ll:grid ll:size-6 ll:shrink-0 ll:place-items-center ll:rounded-full ll:border ll:border-divider ll:text-[12px] ll:font-semibold ll:text-brand-text"
 					>
 						{index + 1}
-					</Box>
+					</span>
 					{step}
-				</Box>
+				</li>
 			))}
-		</Box>
-	</Box>
+		</ol>
+	</section>
 );
 
 export default FirstTimeCard;

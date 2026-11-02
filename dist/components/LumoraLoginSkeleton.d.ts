@@ -5,6 +5,7 @@ export interface LumoraLoginSkeletonProps {
     defaultPlatform?: PlatformId;
     showPlatformSelector?: boolean;
     branding?: BrandingConfig;
+    className?: string;
 }
 /**
  * Loading placeholder for LumoraLogin, drawn in its layout so the page changes in place when

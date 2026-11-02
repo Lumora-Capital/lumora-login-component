@@ -1,5 +1,4 @@
 import React from 'react';
-import { SvgIcon, SvgIconProps } from '@mui/material';
 
 // Angles of the eight rays, clockwise from the top
 const RAY_ANGLES = [0, 45, 90, 135, 180, 225, 270, 315];
@@ -7,8 +6,15 @@ const RAY_ANGLES = [0, 45, 90, 135, 180, 225, 270, 315];
 /**
  * Filled sun: a solid disc with eight rounded rays, drawn in currentColor
  */
-const SunIcon: React.FC<SvgIconProps> = props => (
-	<SvgIcon {...props} viewBox="0 0 24 24">
+const SunIcon: React.FC<React.SVGProps<SVGSVGElement>> = props => (
+	<svg
+		viewBox="0 0 24 24"
+		width="1em"
+		height="1em"
+		aria-hidden
+		focusable="false"
+		{...props}
+	>
 		<circle cx="12" cy="12" r="4.6" fill="currentColor" />
 		{RAY_ANGLES.map(angle => (
 			<line
@@ -23,7 +29,7 @@ const SunIcon: React.FC<SvgIconProps> = props => (
 				transform={`rotate(${angle} 12 12)`}
 			/>
 		))}
-	</SvgIcon>
+	</svg>
 );
 
 export default SunIcon;

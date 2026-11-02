@@ -53,18 +53,13 @@ export interface LoginTheme {
 	bodyFont: string;
 }
 
-// Laptop-height screens: spacing tightens so the sign-in panel fits without scrolling
-export const SHORT_SCREEN = '@media (max-height: 920px)';
-
-// Height of every button and input in the sign-in panel, platform tabs included. Shorter on
-// laptop and phone heights so the panel fits, still above the 44px touch target.
-export const CONTROL_HEIGHT = {
-	height: 50,
-	[SHORT_SCREEN]: { height: 46 }
-} as const;
+// Height of every button and input in the sign-in panel, platform tabs included (50px). Shorter on
+// laptop-height screens (46px) so the panel fits, still above the 44px touch target.
+export const CONTROL_HEIGHT = 'll:h-[50px] ll:short:h-[46px]';
 
 // Shadow under raised cards (platform selector)
-export const CARD_SHADOW = '0 1px 2px rgba(18, 51, 45, 0.06), 0 8px 24px rgba(18, 51, 45, 0.06)';
+export const CARD_SHADOW =
+	'0 1px 2px rgba(18, 51, 45, 0.06), 0 8px 24px rgba(18, 51, 45, 0.06)';
 
 /**
  * Resolve the page colours for a colour mode and the selected platform
@@ -100,7 +95,9 @@ export const getLoginTheme = (
 		// The branding colours are near-black greens, so dark mode uses the light heading and a mint
 		welcomeTitle: isDark ? dark.heading : brandConfig.welcomeTitleColor!,
 		// Dark mode matches the logo's brighter teal
-		welcomeAccent: isDark ? '#0aa898' : brandConfig.welcomeTitleAccentColor!,
+		welcomeAccent: isDark
+			? '#0aa898'
+			: brandConfig.welcomeTitleAccentColor!,
 		text: isDark ? dark.text : '#3b4d49',
 		tagline: isDark ? dark.text : '#555555',
 		label: isDark ? dark.text : '#555555',
@@ -123,10 +120,14 @@ export const getLoginTheme = (
 		heroHeadlineAccent: '#05a393',
 		muted: isDark ? dark.muted : '#5d6e6a',
 		heroBg: isDark ? dark.heroBg : '#f6f7f4',
-		heroGrid: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(18, 51, 45, 0.06)',
+		heroGrid: isDark
+			? 'rgba(255, 255, 255, 0.05)'
+			: 'rgba(18, 51, 45, 0.06)',
 		accent,
 		// Hover darkens the accent slightly
-		accentHover: platformConfig ? `color-mix(in srgb, ${accent} 85%, #000)` : brandConfig.secondaryColor!,
+		accentHover: platformConfig
+			? `color-mix(in srgb, ${accent} 85%, #000)`
+			: brandConfig.secondaryColor!,
 		// Dark mode's bright accents fail with white text (about 3:1); dark text passes (5:1+)
 		buttonText: isDark ? '#04201c' : brandConfig.buttonTextColor!,
 		headingFont: brandConfig.headingFontFamily!,
@@ -135,21 +136,19 @@ export const getLoginTheme = (
 };
 
 /**
- * Keyboard focus ring for buttons, in the accent colour
+ * The theme as CSS variables (--lumora-page-bg, --lumora-accent…), which the stylesheet's colour and
+ * font utilities read. Set on the component's root.
  * @param theme - Resolved login theme
- * @returns sx rule for MUI's focus-visible state
+ * @returns Variable name → value
  */
-export const focusRing = (theme: LoginTheme) => ({
-	'&.Mui-focusVisible': {
-		outline: `2px solid ${theme.accent}`,
-		outlineOffset: 2
-	}
-});
-
-/**
- * Background image for the faint square grid drawn behind the hero
- * @param lineColor - Colour of the grid lines
- * @returns CSS background-image value
- */
-export const gridBackground = (lineColor: string): string =>
-	`linear-gradient(${lineColor} 1px, transparent 1px), linear-gradient(90deg, ${lineColor} 1px, transparent 1px)`;
+export const themeVariables = (theme: LoginTheme): Record<string, string> => {
+	const variables: Record<string, string> = {};
+	Object.entries(theme).forEach(([field, value]) => {
+		if (field !== 'mode' && typeof value === 'string') {
+			variables[
+				`--lumora-${field.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`)}`
+			] = value;
+		}
+	});
+	return variables;
+};

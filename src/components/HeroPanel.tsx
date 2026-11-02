@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { Box } from '@mui/material';
 import { ColorMode, PlatformAssets, PlatformId } from '../types';
 import { PLATFORMS, getPlatform } from '../lib/platforms';
-import { LoginTheme, gridBackground } from '../utils/loginTheme';
+import { LoginTheme } from '../utils/loginTheme';
 import {
 	EASE_OUT,
-	THEME_TRANSITION,
+	THEME_TRANSITION_CLASS,
 	fadeUpAnimation,
 	riseIn,
 	slideInFrame
 } from '../utils/motion';
+import { cn } from '../lib/utils';
 import BrowserFrame from './BrowserFrame';
 import PlatformLogo from './PlatformLogo';
 
@@ -21,31 +21,20 @@ interface HeroPanelProps {
 	compact?: boolean;
 }
 
-// Height of the phone banner
-const COMPACT_HEIGHT = 200;
-
-// Headline size on the phone banner
-const COMPACT_HEADLINE_SIZE = 'clamp(1.25rem, 5.6vw, 1.6rem)';
-
-// Headline size shared by the default and platform heroes
-const HEADLINE_SX = {
-	m: 0,
-	fontWeight: 600,
-	fontSize: 'clamp(2.25rem, 4vw, 4.25rem)',
-	lineHeight: 1.08,
-	letterSpacing: '-0.02em'
-} as const;
+// Headline shared by the default and platform heroes; the phone banner's is smaller
+const HEADLINE_CLASS =
+	'll:font-semibold ll:leading-[1.08] ll:tracking-[-0.02em]';
+const headlineSize = (compact: boolean) =>
+	compact
+		? 'll:text-[length:clamp(1.25rem,5.6vw,1.6rem)]'
+		: 'll:text-[length:clamp(2.25rem,4vw,4.25rem)]';
 
 // Uppercase, letter-spaced label above the headline
-const EYEBROW_SX = {
-	display: 'flex',
-	alignItems: 'center',
-	gap: 1.5,
-	fontSize: 12,
-	fontWeight: 600,
-	letterSpacing: '0.16em',
-	textTransform: 'uppercase'
-} as const;
+const eyebrowClass = (compact: boolean) =>
+	cn(
+		'll:flex ll:items-center ll:font-semibold ll:tracking-[0.16em] ll:uppercase',
+		compact ? 'll:gap-2 ll:text-[10px]' : 'll:gap-3 ll:text-[12px]'
+	);
 
 // Which art of a platform: its dashboard screenshot or its window on the overview stack
 type ArtKey = 'screenshot' | 'overviewScreenshot';
@@ -319,133 +308,94 @@ const HeroPanel: React.FC<HeroPanelProps> = ({
 	);
 
 	// Side padding of the text and of the dashboard's left edge
-	const inset = compact ? 2.25 : { md: 5, lg: 6 };
+	const insetX = compact ? 'll:px-[18px]' : 'll:md:px-10 ll:lg:px-12';
 
 	return (
-		<Box
-			component="aside"
+		<aside
 			aria-label={
 				selected
 					? `${selected.name} overview`
 					: 'Lumora platforms overview'
 			}
-			sx={{
-				position: 'relative',
-				height: compact ? COMPACT_HEIGHT : '100%',
-				borderRadius: compact ? '16px' : '24px',
-				overflow: 'hidden',
-				display: 'flex',
-				flexDirection: 'column',
-				fontFamily: theme.bodyFont,
-				backgroundColor: selected ? selected.color : theme.heroBg,
-				// Grid lines: an overlay drawn in currentColor, so its colour fades with the theme
-				// (a gradient's own colours cannot transition)
-				'&::before': {
-					content: '""',
-					position: 'absolute',
-					inset: 0,
-					pointerEvents: 'none',
-					color: selected
+			className={cn(
+				'lumora-grid ll:relative ll:flex ll:flex-col ll:overflow-hidden ll:font-body ll:*:relative',
+				compact
+					? 'll:h-[200px] ll:rounded-[16px]'
+					: 'll:h-full ll:rounded-[24px]',
+				selected ? 'll:text-white' : 'll:bg-hero-bg ll:text-heading',
+				THEME_TRANSITION_CLASS
+			)}
+			style={
+				{
+					backgroundColor: selected?.color,
+					'--lumora-grid-color': selected
 						? 'rgba(255, 255, 255, 0.06)'
-						: theme.heroGrid,
-					backgroundImage: gridBackground('currentColor'),
-					backgroundSize: '32px 32px',
-					transition: THEME_TRANSITION
-				},
-				// Content above the grid
-				'& > *': { position: 'relative' },
-				color: selected ? '#ffffff' : theme.heading,
-				transition: THEME_TRANSITION
-			}}
+						: 'var(--lumora-hero-grid)'
+				} as React.CSSProperties
+			}
 		>
 			{/* Keyed so switching platform remounts the content and replays its entrance */}
 			{selected ? (
 				<React.Fragment key={selected.id}>
 					{/* Platform pitch */}
-					<Box
-						sx={{
-							px: inset,
-							pt: compact ? 2.25 : { md: 7, lg: 9 }
-						}}
+					<div
+						className={cn(
+							insetX,
+							compact ? 'll:pt-[18px]' : 'll:md:pt-14 ll:lg:pt-18'
+						)}
 					>
-						<Box
-							sx={{
-								...EYEBROW_SX,
-								// Platform label ("POLYMER • AI AGENT CONFIGURATION") in Montserrat
-								fontFamily: theme.headingFont,
-								...(compact && { fontSize: 10, gap: 1 }),
-								animation: fadeUpAnimation(0)
-							}}
+						{/* Platform label ("POLYMER • AI AGENT CONFIGURATION") in Montserrat */}
+						<div
+							className={cn(
+								eyebrowClass(compact),
+								'll:font-heading'
+							)}
+							style={{ animation: fadeUpAnimation(0) }}
 						>
-							<Box
-								sx={{
-									width: 22,
-									height: '1px',
-									backgroundColor: 'currentColor'
-								}}
-							/>
+							<div className="ll:h-px ll:w-[22px] ll:bg-current" />
 							{selected.name}
-							<Box
-								component="span"
-								aria-hidden
-								sx={{ fontSize: 14 }}
-							>
+							<span aria-hidden className="ll:text-[14px]">
 								•
-							</Box>
+							</span>
 							{selected.area}
-						</Box>
-						<Box
-							component="h2"
-							sx={{
-								...HEADLINE_SX,
+						</div>
+						<h2
+							className={cn(
+								HEADLINE_CLASS,
+								headlineSize(compact),
 								// Laptops: wraps every platform's headline the way Polymer's does ("Build agents.
 								// Govern every" 13.3em fits; Centra 14.3em and XPdite 15.2em break onto a second line).
 								// Wide screens (xl): no limit, so a headline stays on one line wherever it fits.
 								// In em, so the limit scales with the font.
-								maxWidth: { xs: '13.8em', xl: 'none' },
-								...(compact && {
-									fontSize: COMPACT_HEADLINE_SIZE
-								}),
-								mt: compact ? 1 : 2.5,
-								fontFamily: theme.headingFont,
-								animation: fadeUpAnimation(60)
-							}}
+								'll:max-w-[13.8em] ll:font-heading ll:xl:max-w-none',
+								compact ? 'll:mt-2' : 'll:mt-5'
+							)}
+							style={{ animation: fadeUpAnimation(60) }}
 						>
 							{selected.headline}{' '}
-							<Box
-								component="span"
-								sx={{ color: selected.accent }}
-							>
+							<span style={{ color: selected.accent }}>
 								{selected.headlineAccent}
-							</Box>
-						</Box>
+							</span>
+						</h2>
 						{!compact && (
-							<Box
-								sx={{
-									mt: 2,
-									fontSize: 18,
-									lineHeight: 1.5,
-									opacity: 0.92,
-									maxWidth: 640,
-									animation: fadeUpAnimation(120)
-								}}
+							<div
+								className="ll:mt-4 ll:max-w-[640px] ll:text-[18px] ll:leading-normal ll:opacity-[0.92]"
+								style={{ animation: fadeUpAnimation(120) }}
 							>
 								{selected.description}
-							</Box>
+							</div>
 						)}
-					</Box>
+					</div>
 
 					{/* Screenshot, bleeding off the right and bottom edges */}
-					<Box
-						sx={{
-							flex: 1,
-							minHeight: compact ? 0 : 240,
-							mt: compact ? 1.75 : { md: 5, lg: 6 },
-							ml: inset,
-							mr: '-14px',
-							mb: '-14px',
-							display: 'flex',
-							flexDirection: 'column',
+					<div
+						className={cn(
+							'll:-mr-[14px] ll:-mb-[14px] ll:flex ll:flex-1 ll:flex-col',
+							compact
+								? 'll:mt-3.5 ll:ml-[18px] ll:min-h-0'
+								: 'll:min-h-[240px] ll:md:mt-10 ll:md:ml-10 ll:lg:mt-12 ll:lg:ml-12'
+						)}
+						style={{
 							animation: `${slideInFrame} 450ms ${EASE_OUT} 120ms both`
 						}}
 					>
@@ -457,197 +407,132 @@ const HeroPanel: React.FC<HeroPanelProps> = ({
 								screenshot={
 									screenshots[selected.id] ?? undefined
 								}
-								sx={
+								className={
 									screenshots[selected.id]
-										? {
-												// Scaled by width only, so a tall hero adds space above it
-												// instead of zooming it; sits on the bottom edge and is cut
-												// there when the hero is short
-												width: '100%',
-												height: 'auto',
-												flexShrink: 0,
-												mt: 'auto'
-											}
+										? // Scaled by width only, so a tall hero adds space above it instead of zooming
+											// it; sits on the bottom edge and is cut there when the hero is short
+											'll:mt-auto ll:h-auto ll:w-full ll:shrink-0'
 										: // The placeholder window fills the space
-											{ flex: 1 }
+											'll:flex-1'
 								}
 							/>
 						)}
-					</Box>
+					</div>
 				</React.Fragment>
 			) : (
 				<React.Fragment key="ecosystem">
 					{/* Ecosystem overview */}
-					<Box
-						sx={{
-							px: inset,
-							pt: compact ? 2.25 : { md: 5, lg: 6 }
-						}}
+					<div
+						className={cn(
+							insetX,
+							compact ? 'll:pt-[18px]' : 'll:md:pt-10 ll:lg:pt-12'
+						)}
 					>
-						<Box
-							sx={{
-								display: 'flex',
-								alignItems: 'center',
-								justifyContent: 'space-between',
-								gap: 2,
-								animation: fadeUpAnimation(0)
-							}}
+						<div
+							className="ll:flex ll:items-center ll:justify-between ll:gap-4"
+							style={{ animation: fadeUpAnimation(0) }}
 						>
-							<Box
-								sx={{
-									...EYEBROW_SX,
-									fontFamily: theme.bodyFont,
-									fontSize: 16,
-									fontWeight: 600,
+							<div
+								className={cn(
+									eyebrowClass(compact),
+									'll:font-body ll:text-eyebrow',
 									// The phone banner keeps a small label so the headline fits
-									...(compact && { fontSize: 10, gap: 1 }),
-									color: theme.eyebrow,
-									transition: THEME_TRANSITION
-								}}
+									!compact && 'll:text-[16px]',
+									THEME_TRANSITION_CLASS
+								)}
 							>
-								<Box
-									sx={{
-										width: 12,
-										height: '1px',
-										backgroundColor: 'currentColor'
-									}}
-								/>
+								<div className="ll:h-px ll:w-3 ll:bg-current" />
 								A Lumora Capital ecosystem
-							</Box>
+							</div>
 							{!compact && (
-								<Box
-									sx={{
-										flexShrink: 0,
-										px: 1.5,
-										py: 0.75,
-										borderRadius: 999,
-										// Outlined pill on the hero: no fill, slate border, Lumora green text
-										border: '1px solid #546881',
-										backgroundColor: 'transparent',
-										fontSize: 11,
-										fontWeight: 700,
-										letterSpacing: '0.14em',
-										textTransform: 'uppercase',
-										color: theme.brandText
-									}}
-								>
+								// Outlined pill on the hero: no fill, slate border, Lumora green text
+								<div className="ll:shrink-0 ll:rounded-full ll:border ll:border-[#546881] ll:bg-transparent ll:px-3 ll:py-1.5 ll:text-[11px] ll:font-bold ll:tracking-[0.14em] ll:text-brand-text ll:uppercase">
 									{PLATFORMS.length} platforms · 1 account
-								</Box>
+								</div>
 							)}
-						</Box>
+						</div>
 
 						{/* Platform chips; the phone banner sits right above the selector, which shows them */}
 						{!compact && (
-							<Box
-								sx={{
-									display: 'flex',
-									flexWrap: 'wrap',
-									gap: 1,
-									mt: { md: 5, lg: 7 },
-									animation: fadeUpAnimation(60)
-								}}
+							<div
+								className="ll:flex ll:flex-wrap ll:gap-2 ll:md:mt-10 ll:lg:mt-14"
+								style={{ animation: fadeUpAnimation(60) }}
 							>
 								{PLATFORMS.map(item => (
-									<Box
+									<div
 										key={item.id}
-										sx={{
-											display: 'inline-flex',
-											alignItems: 'center',
-											gap: 1,
-											px: 1.75,
-											py: 0.75,
-											borderRadius: 999,
-											backgroundColor: item.uiColor,
-											color: '#ffffff',
-											// Logos as on a selected tab: all white
-											'--mark-primary': '#ffffff',
-											'--mark-secondary': '#ffffff',
-											'--mark-center': item.uiColor,
-											'--mark-ring': '#ffffff',
-											// App names are set in the heading font (Montserrat)
-											fontFamily: theme.headingFont,
-											fontSize: 12,
-											fontWeight: 600,
-											letterSpacing: '0.12em',
-											textTransform: 'uppercase',
-											'& .MuiSvgIcon-root': {
-												fontSize: 16
-											}
-										}}
+										// App names are set in the heading font (Montserrat)
+										className="ll:inline-flex ll:items-center ll:gap-2 ll:rounded-full ll:px-3.5 ll:py-1.5 ll:font-heading ll:text-[12px] ll:font-semibold ll:tracking-[0.12em] ll:text-white ll:uppercase"
+										style={
+											{
+												backgroundColor: item.uiColor,
+												// Logos as on a selected tab: all white
+												'--mark-primary': '#ffffff',
+												'--mark-secondary': '#ffffff',
+												'--mark-center': item.uiColor,
+												'--mark-ring': '#ffffff'
+											} as React.CSSProperties
+										}
 									>
 										{platformAssets?.[item.id]?.logo ?? (
-											<PlatformLogo platform={item.id} />
+											<PlatformLogo
+												platform={item.id}
+												className="ll:size-4"
+											/>
 										)}
 										{item.name}
-									</Box>
+									</div>
 								))}
-							</Box>
+							</div>
 						)}
 
-						<Box
-							component="h2"
-							sx={{
-								...HEADLINE_SX,
-								...(compact && {
-									fontSize: COMPACT_HEADLINE_SIZE
-								}),
-								mt: compact ? 1 : 2,
-								fontFamily: theme.headingFont,
-								color: theme.heroHeadline,
-								transition: THEME_TRANSITION,
-								animation: fadeUpAnimation(120)
-							}}
+						<h2
+							className={cn(
+								HEADLINE_CLASS,
+								headlineSize(compact),
+								'll:font-heading ll:text-hero-headline',
+								compact ? 'll:mt-2' : 'll:mt-4',
+								THEME_TRANSITION_CLASS
+							)}
+							style={{ animation: fadeUpAnimation(120) }}
 						>
 							One sign-in.{' '}
-							<Box
-								component="span"
-								sx={{
-									color: theme.heroHeadlineAccent,
-									transition: THEME_TRANSITION
-								}}
+							<span
+								className={cn(
+									'll:text-hero-headline-accent',
+									THEME_TRANSITION_CLASS
+								)}
 							>
 								Every platform.
-							</Box>
-						</Box>
+							</span>
+						</h2>
 						{!compact && (
-							<Box
-								sx={{
-									mt: 2,
-									fontFamily: theme.bodyFont,
-									fontSize: 18,
-									fontWeight: 500,
-									lineHeight: 1.55,
-									color: theme.heroText,
-									maxWidth: 540,
-									animation: fadeUpAnimation(180)
-								}}
+							<div
+								className="ll:mt-4 ll:max-w-[540px] ll:font-body ll:text-[18px] ll:leading-[1.55] ll:font-medium ll:text-hero-text"
+								style={{ animation: fadeUpAnimation(180) }}
 							>
 								Centra runs the deals. Polymer builds the
 								agents. XPdite trains them. One Lumora account
 								opens all three.
-							</Box>
+							</div>
 						)}
-					</Box>
+					</div>
 
-					{/* Stacked product windows */}
-					<Box
-						sx={{
-							position: 'relative',
-							flex: 1,
-							minHeight: compact ? 0 : 220,
-							mt: compact ? 1.5 : 0,
-							mx: inset,
-							// Lets the overview scene size itself to this box (cqw / cqh units)
-							containerType: 'size'
-						}}
+					{/* Stacked product windows; the box is a size container, so the overview scene can size
+					    itself to it (cqw / cqh units) */}
+					<div
+						className={cn(
+							'll:relative ll:flex-1',
+							compact
+								? 'll:mx-[18px] ll:mt-3 ll:min-h-0'
+								: 'll:mt-0 ll:min-h-[220px] ll:md:mx-10 ll:lg:mx-12'
+						)}
+						style={{ containerType: 'size' }}
 					>
 						{hasOverviewArt ? (
-							<Box
-								sx={{
-									position: 'absolute',
-									left: 0,
-									right: 0,
-									mx: 'auto',
+							<div
+								className="ll:absolute ll:right-0 ll:left-0 ll:mx-auto"
+								style={{
 									aspectRatio: String(SCENE_ASPECT),
 									// Desktop: the whole stack fits, bottoms on the hero's edge.
 									// Phone banner: full width from the top, bottoms clipped.
@@ -668,24 +553,21 @@ const HeroPanel: React.FC<HeroPanelProps> = ({
 								).map((id, index) =>
 									// Nothing while the window loads
 									screenshots[id] ? (
-										<Box
+										<img
 											key={id}
-											component="img"
 											src={screenshots[id]}
 											alt={`${getPlatform(id).name} dashboard`}
-											sx={{
-												position: 'absolute',
-												bottom: 0,
+											className="ll:absolute ll:bottom-0 ll:block"
+											style={{
 												left: ART_LEFT[id],
 												width: ART_WIDTH,
-												display: 'block',
 												// Back window first, front window last
 												animation: `${riseIn} 500ms ${EASE_OUT} ${200 + index * 60}ms both`
 											}}
 										/>
 									) : null
 								)}
-							</Box>
+							</div>
 						) : (
 							(
 								['polymer', 'xpdite', 'centra'] as PlatformId[]
@@ -704,8 +586,8 @@ const HeroPanel: React.FC<HeroPanelProps> = ({
 										screenshot={
 											screenshots[id] ?? undefined
 										}
-										sx={{
-											position: 'absolute',
+										className="ll:absolute"
+										style={{
 											...STACK_LAYOUT[id],
 											// Run past the bottom edge, where the hero clips them
 											bottom: '-24px',
@@ -716,10 +598,10 @@ const HeroPanel: React.FC<HeroPanelProps> = ({
 								);
 							})
 						)}
-					</Box>
+					</div>
 				</React.Fragment>
 			)}
-		</Box>
+		</aside>
 	);
 };
 

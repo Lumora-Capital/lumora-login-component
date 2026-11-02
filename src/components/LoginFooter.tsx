@@ -1,90 +1,70 @@
 import React from 'react';
-import { Box, Link } from '@mui/material';
-import { LockOutlined as LockIcon } from '@mui/icons-material';
+import { LockIcon } from 'lucide-react';
 import { BrandingConfig } from '../types';
-import { LoginTheme, SHORT_SCREEN } from '../utils/loginTheme';
-import { THEME_TRANSITION } from '../utils/motion';
+import { THEME_TRANSITION_CLASS } from '../utils/motion';
+import { cn } from '../lib/utils';
 
 interface LoginFooterProps {
 	brandConfig: BrandingConfig;
-	theme: LoginTheme;
 }
 
 /**
  * Security note, support contact and copyright
  */
-const LoginFooter: React.FC<LoginFooterProps> = ({ brandConfig, theme }) => (
-	<Box
-		component="footer"
-		sx={{
-			display: 'grid',
-			gap: 1,
-			[SHORT_SCREEN]: { gap: 0.5 },
-			fontSize: 13,
-			lineHeight: 1.5,
-			color: theme.label,
-			transition: THEME_TRANSITION,
+const LoginFooter: React.FC<LoginFooterProps> = ({ brandConfig }) => (
+	<footer
+		className={cn(
+			'll:grid ll:gap-2 ll:text-[13px] ll:leading-normal ll:text-label ll:short:gap-1',
 			// Centred on phones, where the panel is the whole page; left-aligned beside the hero
-			textAlign: { xs: 'center', md: 'left' },
-			justifyItems: { xs: 'center', md: 'start' }
-		}}
+			'll:justify-items-center ll:text-center ll:md:justify-items-start ll:md:text-left',
+			THEME_TRANSITION_CLASS
+		)}
 	>
 		{brandConfig.securityNote && (
-			<Box
-				sx={{
-					display: 'flex',
-					alignItems: 'center',
-					justifyContent: { xs: 'center', md: 'flex-start' },
-					gap: 0.75
-				}}
-			>
-				<LockIcon sx={{ fontSize: 14 }} />
+			<div className="ll:flex ll:items-center ll:justify-center ll:gap-1.5 ll:md:justify-start">
+				<LockIcon aria-hidden className="ll:size-3.5 ll:shrink-0" />
 				{brandConfig.securityNote}
-			</Box>
+			</div>
 		)}
 
 		{brandConfig.supportLabel && (
-			<Box>
+			<div>
 				Need access?{' '}
 				{brandConfig.supportUrl ? (
-					<Link
+					<a
 						href={brandConfig.supportUrl}
-						sx={{
-							color: theme.brandText,
-							textDecorationColor: 'currentColor'
-						}}
+						className="ll:text-brand-text ll:underline ll:decoration-current"
 					>
 						{brandConfig.supportLabel}
-					</Link>
+					</a>
 				) : (
-					<Box component="span" sx={{ color: theme.brandText }}>
+					<span className="ll:text-brand-text">
 						{brandConfig.supportLabel}
-					</Box>
+					</span>
 				)}
-			</Box>
+			</div>
 		)}
 
 		{(brandConfig.copyright || brandConfig.copyrightHolder) && (
-			<Box>
+			<div>
 				{brandConfig.copyright}
 				{brandConfig.copyright && brandConfig.copyrightHolder && ' '}
 				{brandConfig.copyrightHolder && brandConfig.copyrightUrl ? (
 					// Only the holder is linked; opens in a new tab so the sign-in page stays open
-					<Link
+					<a
 						href={brandConfig.copyrightUrl}
 						target="_blank"
 						rel="noopener noreferrer"
-						underline="hover"
-						sx={{ color: 'inherit' }}
+						className="ll:text-inherit ll:no-underline ll:hover:underline"
 					>
 						{brandConfig.copyrightHolder}
-					</Link>
+					</a>
 				) : (
 					brandConfig.copyrightHolder
 				)}
-			</Box>
+			</div>
 		)}
-	</Box>
+	</footer>
 );
 
 export default LoginFooter;

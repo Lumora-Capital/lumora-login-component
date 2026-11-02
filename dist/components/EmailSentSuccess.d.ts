@@ -1,7 +1,5 @@
 import { default as React } from 'react';
-import { LoginTheme } from '../utils/loginTheme';
 interface EmailSentSuccessProps {
-    theme: LoginTheme;
     title: string;
     description: string;
     onBackToLogin: () => void;

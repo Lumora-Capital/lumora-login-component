@@ -1,12 +1,14 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import dts from 'vite-plugin-dts';
 
 export default defineConfig(({ command, mode }) => {
 	// Ensure production mode for library builds
-	const isProduction = mode === 'production' || process.env.NODE_ENV === 'production';
-	
+	const isProduction =
+		mode === 'production' || process.env.NODE_ENV === 'production';
+
 	return {
 		mode: isProduction ? 'production' : mode,
 		// public/ holds demo-only files (logo sources, screenshots): served by the dev server,
@@ -17,11 +19,17 @@ export default defineConfig(({ command, mode }) => {
 				jsxRuntime: 'automatic',
 				jsxImportSource: 'react'
 			}),
+			// Demo page styles (src/demo/demo.css); the library's stylesheet is built by build:css
+			tailwindcss(),
 			tsconfigPaths(),
 			dts({
 				insertTypesEntry: true,
 				include: ['src/**/*'],
-				exclude: ['src/**/*.test.*', 'src/**/*.spec.*', 'src/__mocks__/**']
+				exclude: [
+					'src/**/*.test.*',
+					'src/**/*.spec.*',
+					'src/__mocks__/**'
+				]
 			})
 		],
 		build: {
@@ -30,7 +38,8 @@ export default defineConfig(({ command, mode }) => {
 				name: 'LumoraLogin',
 				formats: ['es', 'cjs'],
 				// .cjs: with "type": "module" Node would read a .js CommonJS build as an ES module
-				fileName: format => (format === 'cjs' ? 'index.cjs' : 'index.es.js')
+				fileName: format =>
+					format === 'cjs' ? 'index.cjs' : 'index.es.js'
 			},
 			rollupOptions: {
 				external: [
@@ -38,10 +47,11 @@ export default defineConfig(({ command, mode }) => {
 					'react-dom',
 					'react/jsx-runtime',
 					'react/jsx-dev-runtime',
-					'@emotion/react',
-					'@emotion/styled',
-					'@mui/material',
-					'@mui/icons-material',
+					'radix-ui',
+					'lucide-react',
+					'class-variance-authority',
+					'clsx',
+					'tailwind-merge',
 					'react-hook-form',
 					'@hookform/resolvers',
 					'yup',

@@ -1,6 +1,5 @@
 import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
 import LumoraLogin from '../LumoraLogin';
 import { LumoraLoginProps } from '../../types';
 import { authService } from '../../services/authService';
@@ -11,9 +10,6 @@ jest.mock('@simplewebauthn/browser', () => ({
 	startAuthentication: jest.fn(),
 	startRegistration: jest.fn()
 }));
-
-// Create a test theme
-const testTheme = createTheme();
 
 // Frontend route that OAuth and magic link flows return to
 const CALLBACK_URI = `${window.location.origin}/callback`;
@@ -31,14 +27,8 @@ const createMockProps = (
 	...overrides
 });
 
-// Helper function to render component with theme
-const renderWithTheme = (props: LumoraLoginProps) => {
-	return render(
-		<ThemeProvider theme={testTheme}>
-			<LumoraLogin {...props} />
-		</ThemeProvider>
-	);
-};
+// Helper function to render the component
+const renderWithTheme = (props: LumoraLoginProps) => render(<LumoraLogin {...props} />);
 
 // Helper to trigger a sign-in error through the passkey flow
 const triggerPasskeyError = async (user: ReturnType<typeof userEvent.setup>) => {
@@ -513,18 +503,10 @@ describe('LumoraLogin Component', () => {
 				screen.queryAllByRole('complementary', { name: 'Lumora platforms overview' });
 			expect(overviewHero()).toHaveLength(0);
 
-			rerender(
-				<ThemeProvider theme={testTheme}>
-					<LumoraLogin {...props} showOverview />
-				</ThemeProvider>
-			);
+			rerender(<LumoraLogin {...props} showOverview />);
 			expect(overviewHero()).toHaveLength(2);
 
-			rerender(
-				<ThemeProvider theme={testTheme}>
-					<LumoraLogin {...props} showOverview={false} />
-				</ThemeProvider>
-			);
+			rerender(<LumoraLogin {...props} showOverview={false} />);
 			expect(screen.getByRole('button', { name: 'Polymer' })).toHaveAttribute(
 				'aria-pressed',
 				'true'

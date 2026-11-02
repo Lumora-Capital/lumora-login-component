@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { SubmitHandler } from 'react-hook-form';
-import { Box, Alert, Button, CircularProgress, Divider } from '@mui/material';
-import { Google as GoogleIcon } from '@mui/icons-material';
 import { browserSupportsWebAuthn } from '@simplewebauthn/browser';
 import {
 	LumoraLoginProps,
@@ -13,8 +11,9 @@ import {
 	PlatformId
 } from '../types';
 import { getBrandingConfig } from '../utils/branding';
-import { CONTROL_HEIGHT, focusRing, getLoginTheme } from '../utils/loginTheme';
-import { THEME_TRANSITION } from '../utils/motion';
+import { getLoginTheme, themeVariables } from '../utils/loginTheme';
+import { THEME_TRANSITION_CLASS } from '../utils/motion';
+import { cn } from '../lib/utils';
 import { DEFAULT_PLATFORM, PlatformStorage } from '../lib/platforms';
 import { useColorMode } from '../hooks/useColorMode';
 import { isSignInBusy } from '../utils/loginState';
@@ -24,6 +23,10 @@ import { authService } from '../services/authService';
 import { getApiClient } from '../lib/apiClient';
 
 // Import sub-components
+import { Alert } from './ui/alert';
+import { Button } from './ui/button';
+import { Spinner } from './ui/spinner';
+import GoogleIcon from './GoogleIcon';
 import BrandingHeader from './BrandingHeader';
 import SignInOptionButton from './SignInOptionButton';
 import MicrosoftIcon from './MicrosoftIcon';
@@ -59,7 +62,8 @@ const LumoraLogin: React.FC<LumoraLoginProps> = ({
 	defaultColorMode,
 	onColorModeChange,
 	branding,
-	animateEntrance = true
+	animateEntrance = true,
+	className
 }) => {
 	// Only the first screen can stand in for a skeleton; a later one (the link sent) animates in
 	const isFirstScreen = useRef(true);
@@ -332,15 +336,22 @@ const LumoraLogin: React.FC<LumoraLoginProps> = ({
 		/>
 	);
 
+	// The page palette as CSS variables on the root, and its mode for the stylesheet
+	const containerProps = {
+		mode: colorMode,
+		style: themeVariables(theme) as React.CSSProperties,
+		className
+	};
+
 	// Render magic link sent screen
 	if (loginState === 'magic-link-success') {
 		return (
 			<LoginContainer
-				theme={theme}
+				{...containerProps}
 				hero={hero}
 				mobileHero={mobileHero}
 				skipEntrance={skipEntrance}
-				footer={<LoginFooter brandConfig={brandConfig} theme={theme} />}
+				footer={<LoginFooter brandConfig={brandConfig} />}
 			>
 				<BrandingHeader
 					brandConfig={brandConfig}
@@ -348,9 +359,8 @@ const LumoraLogin: React.FC<LumoraLoginProps> = ({
 					showWelcome={false}
 					onToggleColorMode={toggleColorMode}
 				/>
-				<Box sx={{ pt: 6 }}>
+				<div className="ll:pt-12">
 					<EmailSentSuccess
-						theme={theme}
 						title={
 							brandConfig.magicLinkSuccessTitle ||
 							'Check your inbox'
@@ -361,7 +371,7 @@ const LumoraLogin: React.FC<LumoraLoginProps> = ({
 						}
 						onBackToLogin={handleBackToSignIn}
 					/>
-				</Box>
+				</div>
 			</LoginContainer>
 		);
 	}
@@ -369,11 +379,11 @@ const LumoraLogin: React.FC<LumoraLoginProps> = ({
 	// Render main login form
 	return (
 		<LoginContainer
-			theme={theme}
+			{...containerProps}
 			hero={hero}
 			mobileHero={mobileHero}
 			skipEntrance={skipEntrance}
-			footer={<LoginFooter brandConfig={brandConfig} theme={theme} />}
+			footer={<LoginFooter brandConfig={brandConfig} />}
 		>
 			<BrandingHeader
 				brandConfig={brandConfig}
@@ -393,42 +403,21 @@ const LumoraLogin: React.FC<LumoraLoginProps> = ({
 			)}
 
 			{showErrors && error && (
-				<Alert
-					severity="error"
-					onClose={() => setError(null)}
-					sx={{
-						borderRadius: '10px',
-						border: `1px solid ${theme.errorBorder}`,
-						backgroundColor: theme.errorBg,
-						color: theme.errorText,
-						fontFamily: theme.bodyFont,
-						fontSize: 15,
-						transition: THEME_TRANSITION,
-						'& .MuiAlert-icon': { color: theme.errorIcon },
-						'& .MuiAlert-action .MuiIconButton-root': {
-							color: theme.errorText
-						}
-					}}
-				>
-					{error.message}
-				</Alert>
+				<Alert onClose={() => setError(null)}>{error.message}</Alert>
 			)}
 
 			{/* Google / Microsoft side by side */}
 			{showProviders && (
-				<Box
-					sx={{
-						display: 'grid',
-						gridTemplateColumns:
-							enableGoogleSignIn && enableMicrosoftSignIn
-								? '1fr 1fr'
-								: '1fr',
-						gap: 1.5
-					}}
+				<div
+					className={cn(
+						'll:grid ll:gap-3',
+						enableGoogleSignIn && enableMicrosoftSignIn
+							? 'll:grid-cols-2'
+							: 'll:grid-cols-1'
+					)}
 				>
 					{enableGoogleSignIn && (
 						<SignInOptionButton
-							theme={theme}
 							icon={<GoogleIcon />}
 							label="Google"
 							ariaLabel="Continue with Google"
@@ -440,7 +429,6 @@ const LumoraLogin: React.FC<LumoraLoginProps> = ({
 
 					{enableMicrosoftSignIn && (
 						<SignInOptionButton
-							theme={theme}
 							icon={<MicrosoftIcon monochrome />}
 							label="Microsoft"
 							ariaLabel="Continue with Microsoft"
@@ -449,29 +437,24 @@ const LumoraLogin: React.FC<LumoraLoginProps> = ({
 							onClick={() => handleOAuthLogin('microsoft')}
 						/>
 					)}
-				</Box>
+				</div>
 			)}
 
 			{showProviders && showEmailMethods && (
-				<Divider
-					sx={{
-						fontFamily: theme.bodyFont,
-						fontSize: 16,
-						color: theme.label,
-						transition: THEME_TRANSITION,
-						'&::before, &::after': {
-							borderColor: theme.divider,
-							transition: THEME_TRANSITION
-						}
-					}}
+				<div
+					role="separator"
+					className={cn(
+						'll:flex ll:items-center ll:gap-4 ll:font-body ll:text-[16px] ll:whitespace-nowrap ll:text-label',
+						"ll:before:h-px ll:before:flex-1 ll:before:bg-divider ll:before:content-[''] ll:after:h-px ll:after:flex-1 ll:after:bg-divider ll:after:content-['']",
+						THEME_TRANSITION_CLASS
+					)}
 				>
 					or use your work email
-				</Divider>
+				</div>
 			)}
 
 			{enableMagicLinkSignIn && (
 				<MagicLinkForm
-					theme={theme}
 					isSubmitting={loginState === 'magic-link-loading'}
 					disabled={isBusy}
 					onSubmit={handleMagicLinkSubmit}
@@ -480,40 +463,13 @@ const LumoraLogin: React.FC<LumoraLoginProps> = ({
 
 			{showPasskey && (
 				<Button
-					fullWidth
-					variant="outlined"
+					variant="outline-accent"
 					onClick={handlePasskeyLogin}
 					disabled={isBusy}
-					startIcon={
-						loginState === 'passkey-loading' ? (
-							<CircularProgress size={16} color="inherit" />
-						) : undefined
-					}
-					sx={{
-						...CONTROL_HEIGHT,
-						borderRadius: '10px',
-						borderWidth: 1.5,
-						borderColor: theme.accent,
-						backgroundColor: theme.surface,
-						color: theme.accent,
-						fontFamily: theme.headingFont,
-						fontWeight: 600,
-						fontSize: 13,
-						letterSpacing: '0.14em',
-						transition: THEME_TRANSITION,
-						'&:hover': {
-							borderWidth: 1.5,
-							borderColor: theme.accentHover,
-							backgroundColor: `${theme.accent}0f`
-						},
-						'&.Mui-disabled': {
-							borderWidth: 1.5,
-							borderColor: theme.border,
-							color: theme.muted
-						},
-						...focusRing(theme)
-					}}
 				>
+					{loginState === 'passkey-loading' && (
+						<Spinner label={null} />
+					)}
 					{loginState === 'passkey-loading'
 						? 'Waiting for passkey...'
 						: 'Sign in with passkey'}
@@ -522,17 +478,10 @@ const LumoraLogin: React.FC<LumoraLoginProps> = ({
 
 			{showErrors && loginState === 'error' && (
 				<Button
-					variant="text"
+					variant="ghost"
+					size="auto"
 					onClick={handleBackToSignIn}
-					sx={{
-						alignSelf: 'center',
-						mt: -1.5,
-						color: theme.accent,
-						fontFamily: theme.headingFont,
-						textTransform: 'none',
-						fontWeight: 600,
-						...focusRing(theme)
-					}}
+					className="ll:-mt-3 ll:self-center"
 				>
 					Try Again
 				</Button>
@@ -541,7 +490,6 @@ const LumoraLogin: React.FC<LumoraLoginProps> = ({
 			{brandConfig.firstTimeSteps &&
 				brandConfig.firstTimeSteps.length > 0 && (
 					<FirstTimeCard
-						theme={theme}
 						title={brandConfig.firstTimeTitle || 'First time here?'}
 						steps={brandConfig.firstTimeSteps}
 					/>

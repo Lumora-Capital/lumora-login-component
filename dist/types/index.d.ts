@@ -79,6 +79,7 @@ export interface LumoraLoginProps {
     defaultColorMode?: ColorMode;
     onColorModeChange?: (mode: ColorMode) => void;
     branding?: BrandingConfig;
+    className?: string;
 }
 export interface MagicLinkFormData {
     email: string;

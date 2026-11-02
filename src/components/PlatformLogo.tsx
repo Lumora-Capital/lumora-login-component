@@ -1,10 +1,11 @@
 import React from 'react';
-import { SvgIcon, SvgIconProps } from '@mui/material';
 import { PlatformId } from '../types';
-import { SVG_TRANSITION } from '../utils/motion';
+import { cn } from '../lib/utils';
 
-interface PlatformLogoProps extends SvgIconProps {
+interface PlatformLogoProps {
 	platform: PlatformId;
+	// Size it here (e.g. ll:size-[22px]); without one it is 1em square
+	className?: string;
 }
 
 // Paint for each part of a mark. The CSS variables let the selector and hero chips recolour
@@ -21,25 +22,25 @@ const CENTER_RING = 'var(--mark-ring, #ffffff)';
  * Centra, XPdite and Polymer marks, inlined from public/*-logo.svg
  * so apps using the library need no asset files
  */
-const PlatformLogo: React.FC<PlatformLogoProps> = ({
-	platform,
-	sx,
-	...rest
-}) => {
-	// Shapes fade to their new colours (white on a selected tab) with the highlight
-	const props: SvgIconProps = {
-		...rest,
-		sx: [
-			{ '& *': { transition: SVG_TRANSITION } },
-			...(Array.isArray(sx) ? sx : [sx])
-		]
-	};
+const PlatformLogo: React.FC<PlatformLogoProps> = ({ platform, className }) => {
+	// Shapes fade to their new colours (white on a selected tab) with the highlight (SVG_TRANSITION)
+	const props = {
+		viewBox: '0 0 30 30',
+		width: '1em',
+		height: '1em',
+		'aria-hidden': true,
+		focusable: false,
+		className: cn(
+			'll:shrink-0 ll:[&_*]:[transition:fill_350ms_cubic-bezier(0.4,0,0.2,1),stroke_350ms_cubic-bezier(0.4,0,0.2,1)]',
+			className
+		)
+	} as const;
 
 	// Centra: two-tone ring around a dot with a bar
 	if (platform === 'centra') {
 		const fill = { fill: primary('#049586') };
 		return (
-			<SvgIcon {...props} viewBox="0 0 30 30">
+			<svg {...props}>
 				<path
 					style={fill}
 					d="M5.60529 3.14542C4.00282 4.40644 2.68044 5.98728 1.72234 7.78732C0.764232 9.58735 0.191389 11.5671 0.0402716 13.6007C-0.110846 15.6342 0.163072 17.6769 0.844589 19.5988C1.52611 21.5207 2.60029 23.2796 3.99877 24.7637L7.18245 21.7635C6.20044 20.7214 5.44614 19.4863 4.96758 18.1368C4.48902 16.7872 4.29667 15.3528 4.40279 13.9249C4.5089 12.4969 4.91115 11.1067 5.58393 9.84273C6.25672 8.57874 7.18529 7.46868 8.31054 6.58319L5.60529 3.14542Z"
@@ -67,7 +68,7 @@ const PlatformLogo: React.FC<PlatformLogoProps> = ({
 					style={fill}
 					d="M14.6851 9.76587C17.5534 9.76607 19.8784 12.0918 19.8784 14.9602C19.8782 17.8285 17.5533 20.1534 14.6851 20.1536C11.8166 20.1536 9.49092 17.8286 9.49072 14.9602C9.49072 12.0917 11.8165 9.76587 14.6851 9.76587ZM14.689 11.3313C12.6824 11.3314 11.0554 12.9576 11.0552 14.9641C11.0552 16.9708 12.6823 18.5978 14.689 18.5979C16.6957 18.5979 18.3228 16.9708 18.3228 14.9641C18.3226 12.9575 16.6956 11.3313 14.689 11.3313Z"
 				/>
-			</SvgIcon>
+			</svg>
 		);
 	}
 
@@ -75,7 +76,7 @@ const PlatformLogo: React.FC<PlatformLogoProps> = ({
 	if (platform === 'xpdite') {
 		const fill = { fill: primary('#0F62B0') };
 		return (
-			<SvgIcon {...props} viewBox="0 0 30 30">
+			<svg {...props}>
 				<rect
 					style={fill}
 					x="21.4259"
@@ -108,7 +109,7 @@ const PlatformLogo: React.FC<PlatformLogoProps> = ({
 					strokeWidth="1.33541"
 					transform="matrix(-0.982613 -0.185667 -0.185667 0.982613 29.7455 2.17871)"
 				/>
-			</SvgIcon>
+			</svg>
 		);
 	}
 
@@ -116,7 +117,7 @@ const PlatformLogo: React.FC<PlatformLogoProps> = ({
 	const fill = { fill: primary('#03463F') };
 	const outline = { fill: 'none', stroke: primary('#03463F') };
 	return (
-		<SvgIcon {...props} viewBox="0 0 30 30">
+		<svg {...props}>
 			<rect
 				style={fill}
 				x="9.06116"
@@ -147,7 +148,7 @@ const PlatformLogo: React.FC<PlatformLogoProps> = ({
 				style={fill}
 				d="M14.7128 4.64917L19.195 7.237V12.4127L14.7128 15.0005L10.2305 12.4127V7.237L14.7128 4.64917Z"
 			/>
-		</SvgIcon>
+		</svg>
 	);
 };
 

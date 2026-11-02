@@ -10,8 +10,8 @@ interface PlatformSelectorProps {
     onChange: (platform: PlatformId | null) => void;
 }
 /**
- * "Where would you like to start?" segmented control. One platform stays selected unless
- * allowClear lets the user clear it.
+ * "Where would you like to start?" segmented control: toggle buttons (aria-pressed) in a labelled
+ * group. One platform stays selected unless allowClear lets the user clear it.
  */
 declare const PlatformSelector: React.FC<PlatformSelectorProps>;
 export default PlatformSelector;

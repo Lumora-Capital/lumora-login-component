@@ -74,7 +74,7 @@ export interface GoogleOAuthResponse {
 export interface LumoraLoginProps {
 	// Required API configuration
 	authConfig: LumoraAuthConfig;
-	
+
 	// Success/Error callbacks
 	onLoginSuccess: (response: {
 		user: LumoraUser;
@@ -82,7 +82,7 @@ export interface LumoraLoginProps {
 		platform: PlatformId;
 	}) => void;
 	onLoginError: (error: Error) => void;
-	
+
 	// Feature toggles
 	enableRecaptcha?: boolean;
 	recaptchaSiteKey?: string;
@@ -98,7 +98,7 @@ export interface LumoraLoginProps {
 	// false when the form replaces a LumoraLoginSkeleton the host showed: it then appears in
 	// place, rather than the page going blank and fading up a second time. Default true.
 	animateEntrance?: boolean;
-	
+
 	// Platform selection ("Where would you like to start?")
 	// Show the platform selector. Off by default: the page is then always Centra, and
 	// defaultPlatform, showOverview and the user's last choice are ignored.
@@ -118,6 +118,9 @@ export interface LumoraLoginProps {
 
 	// Styling
 	branding?: BrandingConfig;
+	// Extra classes on the page root (the component draws with the stylesheet,
+	// "@volenday/lumora-login-component/styles.css")
+	className?: string;
 }
 
 export interface MagicLinkFormData {
